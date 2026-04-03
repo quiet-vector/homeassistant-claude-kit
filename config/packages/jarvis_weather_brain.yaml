@@ -1,0 +1,196 @@
+template:
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        minutes: "/15"
+      - trigger: state
+        entity_id:
+          - weather.halifax_forecast
+    action:
+      - action: environment_canada.get_forecasts
+        target:
+          entity_id: weather.halifax_forecast
+        response_variable: ec_forecasts
+
+    sensor:
+      - name: "Weather Brain Current Condition"
+        unique_id: weather_brain_current_condition
+        state: "{{ states('weather.halifax_forecast') }}"
+
+      - name: "Weather Brain Current Temperature"
+        unique_id: weather_brain_current_temperature
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state: "{{ state_attr('weather.halifax_forecast', 'temperature') | float(0) }}"
+
+      - name: "Weather Brain Current Wind Speed"
+        unique_id: weather_brain_current_wind_speed
+        unit_of_measurement: "km/h"
+        state: "{{ state_attr('weather.halifax_forecast', 'wind_speed') | float(0) }}"
+
+      - name: "Weather Brain Current Wind Gust"
+        unique_id: weather_brain_current_wind_gust
+        unit_of_measurement: "km/h"
+        state: "{{ state_attr('weather.halifax_forecast', 'wind_gust_speed') | float(0) }}"
+
+      - name: "Weather Brain Current Cloud Coverage"
+        unique_id: weather_brain_current_cloud_coverage
+        unit_of_measurement: "%"
+        state: "{{ state_attr('weather.halifax_forecast', 'cloud_coverage') | float(0) }}"
+
+      - name: "Weather Brain Current Humidity"
+        unique_id: weather_brain_current_humidity
+        unit_of_measurement: "%"
+        state: "{{ state_attr('weather.halifax_forecast', 'humidity') | float(0) }}"
+
+      - name: "Weather Brain Next Hour Condition"
+        unique_id: weather_brain_next_hour_condition
+        state: >
+          {% set fc = ec_forecasts.get('weather.halifax_forecast', {}).get('hourly_forecast', []) %}
+          {{ fc[0].condition if fc | count > 0 else states('weather.halifax_forecast') }}
+
+      - name: "Weather Brain Next Hour Temperature"
+        unique_id: weather_brain_next_hour_temperature
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state: >
+          {% set fc = ec_forecasts.get('weather.halifax_forecast', {}).get('hourly_forecast', []) %}
+          {{ fc[0].temperature if fc | count > 0 and fc[0].temperature is defined else state_attr('weather.halifax_forecast', 'temperature') | float(0) }}
+
+      - name: "Weather Brain Next Hour Precip Probability"
+        unique_id: weather_brain_next_hour_precip_probability
+        unit_of_measurement: "%"
+        state: >
+          {% set fc = ec_forecasts.get('weather.halifax_forecast', {}).get('hourly_forecast', []) %}
+          {{ fc[0].precipitation_probability if fc | count > 0 and fc[0].precipitation_probability is defined else 0 }}
+
+      - name: "Weather Brain Next Hour Precip Amount"
+        unique_id: weather_brain_next_hour_precip_amount
+        unit_of_measurement: "mm"
+        state: >
+          {% set fc = ec_forecasts.get('weather.halifax_forecast', {}).get('hourly_forecast', []) %}
+          {{ fc[0].precipitation if fc | count > 0 and fc[0].precipitation is defined else 0 }}
+
+      - name: "Weather Brain Next Hour Wind Speed"
+        unique_id: weather_brain_next_hour_wind_speed
+        unit_of_measurement: "km/h"
+        state: >
+          {% set fc = ec_forecasts.get('weather.halifax_forecast', {}).get('hourly_forecast', []) %}
+          {{ fc[0].wind_speed if fc | count > 0 and fc[0].wind_speed is defined else state_attr('weather.halifax_forecast', 'wind_speed') | float(0) }}
+
+      - name: "Weather Brain Next Hour Wind Gust"
+        unique_id: weather_brain_next_hour_wind_gust
+        unit_of_measurement: "km/h"
+        state: >
+          {% set fc = ec_forecasts.get('weather.halifax_forecast', {}).get('hourly_forecast', []) %}
+          {{ fc[0].wind_gust_speed if fc | count > 0 and fc[0].wind_gust_speed is defined else state_attr('weather.halifax_forecast', 'wind_gust_speed') | float(0) }}
+
+      - name: "Weather Brain Outdoor Comfort"
+        unique_id: weather_brain_outdoor_comfort
+        state: >
+          {% set t = state_attr('weather.halifax_forecast', 'temperature') | float(0) %}
+          {% if t < -5 %}
+            cold
+          {% elif t < 8 %}
+            cool
+          {% elif t < 20 %}
+            mild
+          {% elif t < 27 %}
+            warm
+          {% else %}
+            hot
+          {% endif %}
+
+      - name: "Weather Brain Wind Risk"
+        unique_id: weather_brain_wind_risk
+        state: >
+          {% set gust = states('sensor.weather_brain_next_hour_wind_gust') | float(0) %}
+          {% set wind = states('sensor.weather_brain_next_hour_wind_speed') | float(0) %}
+          {% set val = [gust, wind] | max %}
+          {% if val >= 70 %}
+            severe
+          {% elif val >= 45 %}
+            windy
+          {% elif val >= 25 %}
+            breezy
+          {% else %}
+            normal
+          {% endif %}
+
+      - name: "Weather Brain Daily Bias"
+        unique_id: weather_brain_daily_bias
+        icon: mdi:weather-partly-rainy
+        state: >
+          {% set cond = states('weather.halifax_forecast') %}
+          {% set rain_soon = is_state('binary_sensor.weather_brain_rain_soon', 'on') %}
+          {% set light = states('sensor.weather_brain_light_class') %}
+          {% set wind = states('sensor.weather_brain_wind_risk') %}
+          {% if cond in ['lightning', 'lightning-rainy'] or wind == 'severe' %}
+            storm
+          {% elif rain_soon or light in ['dim', 'dark'] or cond in ['rainy', 'pouring', 'snowy', 'snowy-rainy', 'fog', 'cloudy'] %}
+            cozy
+          {% else %}
+            normal
+          {% endif %}
+
+  - binary_sensor:
+      - name: "Weather Brain Rain Soon"
+        unique_id: weather_brain_rain_soon
+        device_class: moisture
+        state: >
+          {% set p = states('sensor.weather_brain_next_hour_precip_probability') | float(0) %}
+          {% set amt = states('sensor.weather_brain_next_hour_precip_amount') | float(0) %}
+          {% set cond = states('sensor.weather_brain_next_hour_condition') %}
+          {{
+            p >= 40
+            or amt >= 0.2
+            or cond in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'snowy']
+          }}
+
+      - name: "Weather Brain Dark Day"
+        unique_id: weather_brain_dark_day
+        device_class: light
+        state: >
+          {{ states('sensor.weather_brain_light_class') in ['dim', 'dark'] }}
+
+      - name: "Weather Brain Severe Weather"
+        unique_id: weather_brain_severe_weather
+        state: >
+          {% set cond = states('weather.halifax_forecast') %}
+          {% set wind = states('sensor.weather_brain_wind_risk') %}
+          {{
+            cond in ['lightning', 'lightning-rainy', 'exceptional']
+            or wind == 'severe'
+          }}
+
+input_boolean:
+  jarvis_weather_debug:
+    name: JARVIS Weather Debug
+    icon: mdi:weather-cloudy-alert
+
+automation:
+  - id: jarvis_weather_brain_refresh_debug_log
+    alias: "JARVIS Weather Brain - Debug Log"
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id:
+          - sensor.weather_brain_light_class
+          - binary_sensor.weather_brain_rain_soon
+          - sensor.weather_brain_daily_bias
+          - sensor.weather_brain_wind_risk
+    conditions:
+      - condition: state
+        entity_id: input_boolean.jarvis_weather_debug
+        state: "on"
+    actions:
+      - action: logbook.log
+        data:
+          name: JARVIS Weather Brain
+          message: >
+            light={{ states('sensor.weather_brain_light_class') }},
+            rain_soon={{ states('binary_sensor.weather_brain_rain_soon') }},
+            bias={{ states('sensor.weather_brain_daily_bias') }},
+            wind={{ states('sensor.weather_brain_wind_risk') }}
+          entity_id: weather.halifax_forecast

@@ -1,0 +1,434 @@
+- id: '1771293654987'
+  alias: JARVIS Mode
+  description: ''
+  triggers:
+  - trigger: mqtt
+    topic: jarvis/cmd/mode/set
+  conditions: []
+  actions:
+  - action: input_select.set_options
+    metadata: {}
+    target:
+      entity_id: input_select.jarvis_mode
+    data:
+      options:
+      - '{{ trigger.payload }}'
+  mode: single
+- id: '1771293906550'
+  alias: publish mode state
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.jarvis_mode
+  conditions: []
+  actions:
+  - action: mqtt.publish
+    metadata: {}
+    data:
+      evaluate_payload: false
+      qos: 0
+      retain: false
+      topic: jarvis/state/mode
+      payload: '{{ states(''input_select.jarvis_mode'') }}
+
+        '
+  mode: single
+- id: '1771379613639'
+  alias: JARVIS – Enter Night Mode
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.jarvis_mode
+    to:
+    - night
+  conditions: []
+  actions:
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id:
+      - input_boolean.jarvis_night_armed
+      - input_boolean.quiet_hours
+    data: {}
+  - action: mqtt.publish
+    metadata: {}
+    data:
+      evaluate_payload: false
+      qos: 0
+      retain: false
+      topic: jarvis/state/night
+      payload: armed
+  - action: notify.notify
+    metadata: {}
+    data:
+      message: 'JARVIS: Night mode armed.'
+  mode: single
+- id: '1771594722648'
+  alias: JARVIS - Exit night Mode
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.jarvis_mode
+    from:
+    - night
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id:
+      - input_boolean.jarvis_night_armed
+      - input_boolean.quiet_hours
+    data: {}
+  - action: mqtt.publish
+    metadata: {}
+    data:
+      evaluate_payload: false
+      qos: 0
+      retain: false
+      topic: jarvis/state/night
+      payload: disarmed
+  mode: single
+- id: '1771726450227'
+  alias: Set Amber When Empty
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.house_occupied
+    to:
+    - 'off'
+  conditions:
+  - condition: state
+    entity_id: input_select.security_posture
+    state:
+    - Green
+  actions:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.security_posture
+    data:
+      option: Amber
+  mode: single
+- id: jarvis_mode_morning_weekdays
+  alias: JARVIS Mode — Morning
+  description: ''
+  triggers:
+  - at: 05:00:00
+    trigger: time
+  conditions:
+  - condition: time
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sun
+    - sat
+  - condition: template
+    value_template: '{{ states(''input_select.jarvis_mode'') != ''vacation'' }}'
+  actions:
+  - target:
+      entity_id: input_select.jarvis_mode
+    data:
+      option: morning
+    action: input_select.select_option
+  mode: single
+- id: jarvis_mode_morning_weekends
+  alias: JARVIS Mode — Morning (Weekends 07:00)
+  mode: single
+  trigger:
+  - platform: time
+    at: 07:00:00
+  condition:
+  - condition: time
+    weekday:
+    - sat
+    - sun
+  - condition: template
+    value_template: '{{ states(''input_select.jarvis_mode'') != ''vacation'' }}'
+  action:
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.jarvis_mode
+    data:
+      option: morning
+- id: jarvis_mode_day_weekdays
+  alias: JARVIS Mode — Day
+  description: ''
+  triggers:
+  - at: 09:00:00
+    trigger: time
+  conditions:
+  - condition: time
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sun
+    - sat
+  - condition: template
+    value_template: '{{ states(''input_select.jarvis_mode'') != ''vacation'' }}'
+  actions:
+  - target:
+      entity_id: input_select.jarvis_mode
+    data:
+      option: day
+    action: input_select.select_option
+  mode: single
+- id: jarvis_mode_day_weekends
+  alias: JARVIS Mode — Day (Weekends 10:00)
+  mode: single
+  trigger:
+  - platform: time
+    at: '10:00:00'
+  condition:
+  - condition: time
+    weekday:
+    - sat
+    - sun
+  - condition: template
+    value_template: '{{ states(''input_select.jarvis_mode'') != ''vacation'' }}'
+  action:
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.jarvis_mode
+    data:
+      option: day
+- id: jarvis_mode_evening_sunset
+  alias: JARVIS Mode — Evening (Sunset)
+  triggers:
+  - event: sunset
+    trigger: sun
+    offset: -00:30:00
+  conditions:
+  - condition: template
+    value_template: '{{ states(''input_select.jarvis_mode'') != ''vacation'' }}'
+  actions:
+  - target:
+      entity_id: input_select.jarvis_mode
+    data:
+      option: evening
+    action: input_select.select_option
+  mode: single
+- id: jarvis_mode_night_2300
+  alias: JARVIS Mode — Night (23:00)
+  triggers:
+  - at: '22:30:00'
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ states(''input_select.jarvis_mode'') != ''vacation'' }}'
+  actions:
+  - target:
+      entity_id: input_select.jarvis_mode
+    data:
+      option: night
+    action: input_select.select_option
+  mode: single
+- &id001
+  id: jarvis_lighting_morning
+  alias: JARVIS Lighting — Morning
+  description: ''
+  triggers:
+  - entity_id: input_select.jarvis_mode
+    to: morning
+    trigger: state
+  actions:
+  - target:
+      entity_id: light.living_room
+    data:
+      brightness_pct: 50
+      transition: 3
+    action: light.turn_on
+    enabled: false
+  mode: restart
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- id: jarvis_lighting_day
+  alias: JARVIS Lighting — Day (All Off)
+  triggers:
+  - entity_id: input_select.jarvis_mode
+    to: day
+    trigger: state
+  actions:
+  - target:
+      entity_id:
+      - light.living_room
+      - light.primary_bedroom
+      - light.family_room
+      - light.kennedys_bedroom
+    action: light.turn_off
+    data:
+      transition: 3
+  mode: restart
+- id: jarvis_lighting_evening
+  alias: JARVIS Lighting — Evening
+  description: ''
+  triggers:
+  - entity_id: input_select.jarvis_mode
+    to: evening
+    trigger: state
+  actions:
+  - target:
+      entity_id: light.family_room
+    data:
+      brightness_pct: 50
+    action: light.turn_on
+    enabled: true
+  mode: restart
+- id: jarvis_lighting_night
+  alias: JARVIS Lighting — Night (Nightlights Only)
+  triggers:
+  - entity_id: input_select.jarvis_mode
+    to: night
+    trigger: state
+  actions:
+  - target:
+      entity_id:
+      - light.living_room
+      - light.primary_bedroom
+      - light.family_room
+      - light.kennedys_bedroom
+      - light.office_lamp
+    action: light.turn_off
+    data:
+      transition: 3
+  - target:
+      entity_id: light.night_light_stairwell
+    data:
+      brightness_pct: 20
+    action: light.turn_on
+  mode: restart
+- id: jarvis_lighting_away
+  alias: JARVIS Lighting — Away (All Off)
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: input_select.jarvis_mode
+    to: away
+  action:
+  - service: light.turn_off
+    target:
+      entity_id:
+      - light.living_room
+      - light.primary_bedroom
+      - light.family_room
+- id: '1772993154888'
+  alias: JARVIS - Power Outage Recovery Start
+  description: ''
+  triggers:
+  - trigger: homeassistant
+    event: start
+  conditions: []
+  actions:
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.power_outage_recovery_mode
+    data: {}
+  mode: single
+- id: '1772993323571'
+  alias: JARVIS - Power Outage Recovery Clear
+  description: ''
+  triggers:
+  - trigger: homeassistant
+    event: start
+  conditions: []
+  actions:
+  - delay:
+      hours: 0
+      minutes: 2
+      seconds: 0
+      milliseconds: 0
+  - action: input_boolean.turn_off
+    metadata: {}
+    target:
+      entity_id: input_boolean.power_outage_recovery_mode
+    data: {}
+  mode: single
+- id: '1773529527058'
+  alias: Good Night Voice Entry
+  description: Google-facing entry point for bedtime
+  triggers: []
+  conditions: []
+  actions:
+  - action: script.good_night_3
+    data: {}
+  mode: single
+- id: '1774039869086'
+  alias: Patio Door Bypass Auto Off
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.patio_door_bypass
+    to:
+    - 'on'
+    for:
+      hours: 2
+      minutes: 0
+      seconds: 0
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.patio_door_bypass
+    data: {}
+  mode: restart
+- id: '1774039995548'
+  alias: Garage Overhead Bypass Auto Off
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.garage_overhead_bypass
+    to:
+    - 'on'
+    for:
+      hours: 4
+      minutes: 0
+      seconds: 0
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id:
+      - input_boolean.garage_overhead_bypass
+    data: {}
+  mode: restart
+- id: '1774053999728'
+  alias: Front Door Bypass Auto On
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.front_door_bypass
+    to:
+    - 'on'
+    for:
+      hours: 0
+      minutes: 30
+      seconds: 0
+  conditions: []
+  actions:
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.front_door_bypass
+    data: {}
+  mode: single

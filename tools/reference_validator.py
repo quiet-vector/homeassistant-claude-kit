@@ -101,9 +101,15 @@ class ReferenceValidator:
     BUILTIN_ENTITIES = {
         "sun.sun",
         "zone.home",
-        # Add your own below, for example:
-        # "sensor.system_monitor_disk_usage",
-        # "sensor.system_monitor_memory_usage",
+        # utility_meter generated sensors
+        "sensor.garage_fridge_daily_energy",
+        # jarvis_weather_brain.yaml self-referential template sensors
+        "sensor.weather_brain_next_hour_precip_amount",
+        "sensor.weather_brain_next_hour_wind_speed",
+        "sensor.weather_brain_next_hour_wind_gust",
+        "sensor.weather_brain_wind_risk",
+        "sensor.weather_brain_daily_bias",
+        "input_boolean.jarvis_weather_debug",
     }
 
     # No domain-wide skips - we validate all entity references

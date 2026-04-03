@@ -1,0 +1,32 @@
+esphome:
+  name: core-console
+  friendly_name: core-console
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "td6Qajpt+AXoIq1JTa+H93cknTJXvJPbz6CS1aTEhIw="
+
+ota:
+  - platform: esphome
+    password: "3daae9f9abb05954d23119629b8fa9e5"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Core-Console Fallback Hotspot"
+    password: "pgJtgVrA7T4p"
+
+captive_portal:
+    

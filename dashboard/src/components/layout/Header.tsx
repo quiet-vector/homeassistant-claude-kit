@@ -21,7 +21,7 @@ export function Header({ config }: HeaderProps) {
       <div className="flex min-w-0 items-center gap-2">
         {config.persons.map((p) => {
           const state = entities[p.id]?.state;
-          const isHome = state === "home";
+          const isHome = state === "on" || state === "home";
           return (
             <div key={p.id} className="flex items-center gap-1" title={p.name}>
               <span

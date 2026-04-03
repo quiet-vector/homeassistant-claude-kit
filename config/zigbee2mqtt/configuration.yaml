@@ -1,0 +1,72 @@
+version: 5
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://core-mosquitto
+  user: mqtt-z2m
+  password: nSrnwQXQE5ACKcx3Tp2h
+serial:
+  baudrate: 115200
+  rtscts: false
+  port: tcp://192.168.60.128:6638
+  adapter: zstack
+advanced:
+  log_level: info
+frontend:
+  enabled: true
+  port: 8099
+homeassistant:
+  enabled: true
+devices:
+  '0x001788010ea05318':
+    friendly_name: primary_bdrm_3
+  '0x001788010ea052ba':
+    friendly_name: primary_bdrm_2
+  '0x001788010ea030ea':
+    friendly_name: primary_bdrm_1
+  '0x001788010ea05319':
+    friendly_name: primary_bdrm_4
+  '0x001788010ea02bdb':
+    friendly_name: lr_floor_lamp
+  '0x001788010ea02af1':
+    friendly_name: lr_table_lamp
+  '0x001788010e7c431e':
+    friendly_name: kennedy_light_bar
+  '0x001788010ea02913':
+    friendly_name: kennedy_light_1
+  '0x001788010ea028ac':
+    friendly_name: kennedy_light_2
+  '0x001788010eacf7c4':
+    friendly_name: fr_lamp_3
+  '0x001788010eacfaa8':
+    friendly_name: fr_lamp_2
+  '0x001788010eace942':
+    friendly_name: fr_lamp_1
+  '0x00178801033bf2f1':
+    friendly_name: office_lamp
+  '0xb40ecfd7cb570000':
+    friendly_name: Night Light Stairwell
+  '0xffffb40e0607630f':
+    friendly_name: garage_fridge_plug
+  '0xffffb40e0607a201':
+    friendly_name: wine_fridge
+  '0x001788010f6aa123':
+    friendly_name: Hue Motion LR
+  '0xffffb40e060760d8':
+    friendly_name: server_plug
+  '0xb40e060fffe2b1a8':
+    friendly_name: Front Door Contact
+  '0xb40e060fffe2a38e':
+    friendly_name: Garage Door Contact
+  '0xffffb40e06061669':
+    friendly_name: Garage Overhead Door
+  '0xb40e060fffe2b1d2':
+    friendly_name: Patio Door Contact
+groups:
+  '1':
+    friendly_name: light.primary_bdrm
+  '2':
+    friendly_name: family_room_floor_lamp_1
+  '3':
+    friendly_name: primary_bdrm_lamp_1
+  '4':
+    friendly_name: primary_bdrm_lamp_2

@@ -1,0 +1,210 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+template:
+  - sensor:
+      - name: "NS Power Rate"
+        unique_id: ns_power_rate
+        unit_of_measurement: "CAD/kWh"
+        state: "{{ states('input_number.ns_power_energy_rate') | float(0) }}"
+        
+      - name: "Garage Fridge Cost Now"
+        unique_id: garage_fridge_cost_now
+        unit_of_measurement: "CAD/h"
+        state: >
+          {{ (states('sensor.garage_fridge_plug_power') | float(0) / 1000)
+             * states('sensor.ns_power_rate') | float(0) }}
+
+      - name: "Garage Fridge Total Cost"
+        unique_id: garage_fridge_total_cost
+        unit_of_measurement: "CAD"
+        state: >
+          {{ states('sensor.garage_fridge_plug_energy') | float(0)
+             * states('sensor.ns_power_rate') | float(0) }}
+
+      - name: "Garage Fridge Daily Cost"
+        unique_id: garage_fridge_daily_cost
+        unit_of_measurement: "CAD"
+        state: >
+          {{ states('sensor.garage_fridge_daily_energy') | float(0)
+             * states('sensor.ns_power_rate') | float(0) }}
+
+  - sensor:
+      # Lux-aware daylight confidence — uses sun elevation + room lux + weather
+      - name: "Weather Brain Daylight Confidence"
+        unique_id: weather_brain_daylight_confidence
+        unit_of_measurement: "%"
+        state: >
+          {% set cond = states('weather.halifax_forecast') %}
+          {% set next_cond = states('sensor.weather_brain_next_hour_condition') %}
+          {% set elev = state_attr('sun.sun', 'elevation') | float(-90) %}
+          {% set lux = states('sensor.hue_motion_lr_illuminance') | float(0) %}
+          {% set precip = states('sensor.weather_brain_next_hour_precip_probability') | float(0) %}
+
+          {% set score = 50 %}
+
+          {# Sun elevation contribution #}
+          {% if elev >= 35 %}
+            {% set score = score + 25 %}
+          {% elif elev >= 20 %}
+            {% set score = score + 15 %}
+          {% elif elev >= 10 %}
+            {% set score = score + 5 %}
+          {% elif elev < 2 %}
+            {% set score = score - 35 %}
+          {% elif elev < 6 %}
+            {% set score = score - 20 %}
+          {% endif %}
+
+          {# Current / forecast weather contribution #}
+          {% if cond in ['sunny', 'clear'] %}
+            {% set score = score + 20 %}
+          {% elif cond in ['partlycloudy', 'windy', 'windy-variant'] %}
+            {% set score = score + 5 %}
+          {% elif cond in ['cloudy', 'fog'] %}
+            {% set score = score - 12 %}
+          {% elif cond in ['rainy', 'pouring', 'snowy', 'snowy-rainy', 'lightning-rainy'] %}
+            {% set score = score - 22 %}
+          {% endif %}
+
+          {% if next_cond in ['rainy', 'pouring', 'snowy', 'snowy-rainy', 'lightning-rainy'] %}
+            {% set score = score - 10 %}
+          {% endif %}
+
+          {# Precip probability #}
+          {% if precip >= 70 %}
+            {% set score = score - 15 %}
+          {% elif precip >= 40 %}
+            {% set score = score - 8 %}
+          {% endif %}
+
+          {# Real room truth: LR lux #}
+          {% if lux >= 120 %}
+            {% set score = score + 20 %}
+          {% elif lux >= 80 %}
+            {% set score = score + 10 %}
+          {% elif lux >= 40 %}
+            {% set score = score + 0 %}
+          {% elif lux >= 20 %}
+            {% set score = score - 10 %}
+          {% else %}
+            {% set score = score - 20 %}
+          {% endif %}
+
+          {{ [0, [score, 100] | min] | max | round(0) }}
+
+      # Light class driven by lux-aware daylight confidence (overrides the weather-only version in the package)
+      - name: "Weather Brain Light Class"
+        unique_id: weather_brain_light_class
+        icon: mdi:brightness-6
+        state: >
+          {% set conf = states('sensor.weather_brain_daylight_confidence') | float(0) %}
+          {% if conf >= 75 %}
+            bright
+          {% elif conf >= 50 %}
+            normal
+          {% elif conf >= 25 %}
+            dim
+          {% else %}
+            dark
+          {% endif %}
+
+      - name: "LR Light Pressure"
+        unique_id: lr_light_pressure
+        unit_of_measurement: "%"
+        icon: mdi:lightbulb-auto
+        state: >
+          {% set light_class = states('sensor.weather_brain_light_class') %}
+          {% set lux = states('sensor.hue_motion_lr_illuminance') | float(0) %}
+          {% set pressure = 0 %}
+
+          {% if light_class == 'bright' %}
+            {% set pressure = 10 %}
+          {% elif light_class == 'normal' %}
+            {% set pressure = 35 %}
+          {% elif light_class == 'dim' %}
+            {% set pressure = 65 %}
+          {% else %}
+            {% set pressure = 85 %}
+          {% endif %}
+
+          {# local room correction #}
+          {% if lux >= 120 %}
+            {% set pressure = pressure - 20 %}
+          {% elif lux >= 80 %}
+            {% set pressure = pressure - 10 %}
+          {% elif lux < 20 %}
+            {% set pressure = pressure + 10 %}
+          {% endif %}
+
+          {{ [0, [pressure, 100] | min] | max | round(0) }}
+
+  - binary_sensor:
+      - name: "Front Door"
+        state: >
+          {{ is_state('binary_sensor.front_door_contact', 'on') }}
+        device_class: door
+
+      # ── Person presence: UniFi is authority for departure; GPS is fallback for arrival ──
+      # Logic: if UniFi says not_home → away. If UniFi says home → home.
+      # GPS is only used when no UniFi tracker exists for that person.
+
+      - name: "Phillip Home"
+        unique_id: phillip_home
+        device_class: presence
+        state: >
+          {% set wifi = states('device_tracker.unifi_default_de_b4_f2_8a_dd_2e') %}
+          {{ wifi == 'home' }}
+
+      - name: "Kristine Home"
+        unique_id: kristine_home
+        device_class: presence
+        state: >
+          {% set wifi = states('device_tracker.kristine_s_iphone_14_pro_max') %}
+          {{ wifi == 'home' }}
+
+      - name: "Kennedy Home"
+        unique_id: kennedy_home
+        device_class: presence
+        state: >
+          {% set wifi = states('device_tracker.unifi_default_ca_97_a7_fb_2d_45') %}
+          {{ wifi == 'home' }}
+
+      - name: "Zavier Home"
+        unique_id: zavier_home
+        device_class: presence
+        state: >
+          {% set gps = states('person.zavier') %}
+          {{ gps == 'home' }}
+
+      # Household occupancy — derived from JARVIS Presence Manager output
+      - name: "House Occupied"
+        unique_id: house_occupied
+        device_class: occupancy
+        state: >
+          {{ is_state('input_text.jarvis_presence_state', 'Occupied') }}
+
+utility_meter:
+
+  garage_fridge_daily_energy:
+    source: sensor.garage_fridge_plug_energy
+    cycle: daily
+
+panel_custom:
+  - name: custom-dashboard-panel
+    sidebar_title: Dashboard
+    sidebar_icon: mdi:home-assistant
+    url_path: custom-dashboard
+    module_url: /local/custom-dashboard/panel.js
+
+homeassistant:
+  packages: !include_dir_named packages

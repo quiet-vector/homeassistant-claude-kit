@@ -1,0 +1,32 @@
+esphome:
+  name: vsat-masterbed
+  friendly_name: vsat-masterbed
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "3Z2ksjqUPhhRlBHwwJMWZ0z5Ru7nkC0gUPCb7vr+llw="
+
+ota:
+  - platform: esphome
+    password: "009cc262101f89c6924f33021f2e9f13"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Vsat-Masterbed Fallback Hotspot"
+    password: "MS1jPvhM7FzA"
+
+captive_portal:
+    

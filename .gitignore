@@ -166,6 +166,17 @@ config/.ha_run.lock
 config/go2rtc-*
 config/.storage/
 
+# Zigbee2MQTT runtime/database files
+config/zigbee2mqtt/database.db*
+config/zigbee2mqtt/state.json*
+config/zigbee2mqtt/log
+
+# ESPHome secrets
+config/esphome/secrets.yaml
+
+# Working files / scratch
+nr_flow_edited.json
+
 # Public kit specific
 config/go2rtc.yaml
 .claude/projects/
