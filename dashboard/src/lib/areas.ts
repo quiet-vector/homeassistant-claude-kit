@@ -95,7 +95,7 @@ export const ROOMS: RoomConfig[] = [
     name: "Front Entry",
     floor: MAIN,
     icon: "mdi:door-closed",
-    lights: ["light.night_light_stairwell"],
+    lights: [],
     occupancySensor: "binary_sensor.g4_instant_frontporch_motion",
     camera: "camera.g4_instant_frontporch_high_resolution_channel",
     contactSensors: [
@@ -112,7 +112,17 @@ export const ROOMS: RoomConfig[] = [
     camera: "camera.g4_instant_garage_high_resolution_channel",
     contactSensors: [
       { entity: "binary_sensor.garage_door_contact", label: "Garage Door", type: "door" },
+      { entity: "binary_sensor.garage_overhead_door", label: "Overhead Door", type: "door" },
     ],
+  },
+  {
+    id: "stairwell",
+    name: "Stairwell",
+    floor: MAIN,
+    icon: "mdi:stairs",
+    light: "light.night_light_stairwell",
+    lights: ["light.night_light_stairwell"],
+    occupancySensor: "binary_sensor.night_light_stairwell_occupancy",
   },
   {
     id: "primary_bedroom",
