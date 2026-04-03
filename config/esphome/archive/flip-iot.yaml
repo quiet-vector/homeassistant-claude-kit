@@ -1,0 +1,32 @@
+esphome:
+  name: flip-iot
+  friendly_name: FLiP-IoT
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "ZLMbUEqF1qEm77G91LctJTE4QYaQ1lpVu9MGK6xuQY4="
+
+ota:
+  - platform: esphome
+    password: "8f3e0d4eae93f622a26ef541edae4e86"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Flip-Iot Fallback Hotspot"
+    password: "5TpGJKosth89"
+
+captive_portal:
+    

@@ -1,0 +1,195 @@
+- id: '1772837126866'
+  name: LR Reading
+  entities:
+    light.lr_floor_lamp:
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - candle
+      - finish_effect
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode: brightness
+      brightness: 255
+      friendly_name: lr_floor_lamp
+      supported_features: 44
+      state: 'on'
+    light.lr_table_lamp:
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - candle
+      - finish_effect
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode: brightness
+      brightness: 255
+      friendly_name: lr_table_lamp
+      supported_features: 44
+      state: 'on'
+  metadata: {}
+- id: '1773513906581'
+  name: Jarvis Night Mode
+  entities:
+    light.living_room:
+      effect_list:
+      - blink
+      - breathe
+      - candle
+      - channel_change
+      - finish_effect
+      - okay
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode:
+      brightness:
+      entity_id:
+      - light.lr_floor_lamp
+      - light.lr_table_lamp
+      icon: mdi:lightbulb-group
+      friendly_name: Living Room
+      supported_features: 44
+      state: 'off'
+    light.family_room:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6535
+      effect_list:
+      - blink
+      - breathe
+      - candle
+      - channel_change
+      - colorloop
+      - finish_effect
+      - fireplace
+      - okay
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - color_temp
+      - xy
+      effect:
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      hs_color:
+      rgb_color:
+      xy_color:
+      entity_id:
+      - light.family_room_floor_lamp_1
+      icon: mdi:lightbulb-group
+      friendly_name: Family Room
+      supported_features: 44
+      state: 'off'
+    light.kennedys_bedroom:
+      min_color_temp_kelvin: 2000
+      max_color_temp_kelvin: 6535
+      effect_list:
+      - blink
+      - breathe
+      - candle
+      - channel_change
+      - colorloop
+      - finish_effect
+      - fireplace
+      - okay
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - color_temp
+      - xy
+      effect:
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      hs_color:
+      rgb_color:
+      xy_color:
+      entity_id:
+      - light.kennedy_light_1
+      - light.kennedy_light_2
+      - light.kennedy_light_bar
+      icon: mdi:lightbulb-group
+      friendly_name: Kennedys Bedroom
+      supported_features: 44
+      state: 'off'
+    light.primary_bdrm_lamp_1:
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - candle
+      - finish_effect
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode:
+      brightness:
+      friendly_name: primary_bdrm_lamp_1
+      supported_features: 44
+      state: 'off'
+    light.primary_bdrm_lamp_2:
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - candle
+      - finish_effect
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode:
+      brightness:
+      icon: mdi:lightbulb-group
+      friendly_name: primary_bdrm_lamp_2
+      supported_features: 44
+      state: 'off'
+    light.office_lamp:
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - candle
+      - finish_effect
+      - stop_effect
+      - stop_hue_effect
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode:
+      brightness:
+      friendly_name: office_lamp
+      supported_features: 44
+      state: 'off'
+  metadata:
+    light.living_room:
+      entity_only: true
+    light.family_room:
+      entity_only: true
+    light.kennedys_bedroom:
+      entity_only: true
+    light.primary_bdrm_lamp_1:
+      entity_only: true
+    light.primary_bdrm_lamp_2:
+      entity_only: true
+    light.office_lamp:
+      entity_only: true

@@ -1,0 +1,10 @@
+good_night_3:
+  alias: Good Night
+  mode: single
+  sequence:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.jarvis_mode
+    data:
+      option: night
+  description: ''

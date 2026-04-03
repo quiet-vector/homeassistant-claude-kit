@@ -21,14 +21,8 @@ export function ActiveAutomations({ config }: ActiveAutomationsProps) {
   if (entities[config.nightMode]?.state === "on") {
     activeItems.push({ label: "Night mode active", icon: "mdi:weather-night", color: "text-indigo-400" });
   }
-  if (entities[config.movieMode]?.state === "on") {
-    activeItems.push({ label: "Movie mode active", icon: "mdi:movie-open", color: "text-purple-400" });
-  }
-  if (entities[config.workMode]?.state === "on") {
-    activeItems.push({ label: "Work mode active", icon: "mdi:desk", color: "text-blue-400" });
-  }
-  if (entities[config.awayMode]?.state === "on") {
-    activeItems.push({ label: "Away mode — house unoccupied", icon: "mdi:home-export-outline", color: "text-orange-400" });
+  if (entities[config.presenceState]?.state === "Away") {
+    activeItems.push({ label: "House unoccupied", icon: "mdi:home-export-outline", color: "text-orange-400" });
   }
 
   // Check AC heating from solar
