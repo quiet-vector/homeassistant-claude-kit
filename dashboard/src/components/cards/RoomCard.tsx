@@ -36,7 +36,18 @@ export function RoomCard({ room, onTap }: RoomCardProps) {
     isMuted,
     dishwasherStatus,
     dishwasherRemaining,
+    washerStatus,
+    washerRemaining,
+    dryerStatus,
+    dryerRemaining,
   } = state;
+
+  const WASHER_ACTIVE = new Set(["running", "rinsing", "spinning", "soaking", "prewash", "dispensing", "steam_softening", "drying", "rinse_hold"]);
+  const DRYER_ACTIVE = new Set(["running", "cooling", "wrinkle_care"]);
+  const washerActive = washerStatus && WASHER_ACTIVE.has(washerStatus);
+  const washerDone = washerStatus === "end";
+  const dryerActive = dryerStatus && DRYER_ACTIVE.has(dryerStatus);
+  const dryerDone = dryerStatus === "end";
 
   const actions = useRoomActions(room, {
     lightsOn,
@@ -173,6 +184,40 @@ export function RoomCard({ room, onTap }: RoomCardProps) {
           <span className="flex items-center gap-1 truncate">
             <Icon icon="mdi:television" width={14} className="shrink-0 text-text-secondary" />
             <span className="truncate">{mediaAppName}</span>
+          </span>
+        )}
+
+        {/* Washer */}
+        {washerActive && (
+          <span className="flex items-center gap-1 text-accent-cool">
+            <Icon icon="mdi:washing-machine" width={14} className="shrink-0 animate-spin-slow" />
+            <span className="capitalize">{washerStatus}</span>
+            {washerRemaining && washerRemaining !== "unknown" && (
+              <span className="tabular-nums">· {washerRemaining}min</span>
+            )}
+          </span>
+        )}
+        {washerDone && (
+          <span className="flex items-center gap-1 text-accent-green">
+            <Icon icon="mdi:washing-machine" width={14} className="shrink-0" />
+            Washer done
+          </span>
+        )}
+
+        {/* Dryer */}
+        {dryerActive && (
+          <span className="flex items-center gap-1 text-accent-warm">
+            <Icon icon="mdi:tumble-dryer" width={14} className="shrink-0 animate-spin-slow" />
+            <span className="capitalize">{dryerStatus}</span>
+            {dryerRemaining && dryerRemaining !== "unknown" && (
+              <span className="tabular-nums">· {dryerRemaining}min</span>
+            )}
+          </span>
+        )}
+        {dryerDone && (
+          <span className="flex items-center gap-1 text-accent-green">
+            <Icon icon="mdi:tumble-dryer" width={14} className="shrink-0" />
+            Dryer done
           </span>
         )}
 

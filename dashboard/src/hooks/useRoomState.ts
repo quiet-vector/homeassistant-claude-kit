@@ -58,6 +58,12 @@ export interface RoomState {
   // Dishwasher (kitchen only)
   dishwasherStatus: string | undefined;
   dishwasherRemaining: string | undefined;
+
+  // Washer / dryer (laundry room only)
+  washerStatus: string | undefined;
+  washerRemaining: string | undefined;
+  dryerStatus: string | undefined;
+  dryerRemaining: string | undefined;
 }
 
 export function useRoomState(room: RoomConfig, entities: HassEntities): RoomState {
@@ -210,6 +216,20 @@ export function useRoomState(room: RoomConfig, entities: HassEntities): RoomStat
     ? entities[DISHWASHER_TIME_REMAINING]?.state
     : undefined;
 
+  // Washer / dryer — only relevant for laundry room
+  const washerStatus = room.washerStatus
+    ? entities[room.washerStatus]?.state
+    : undefined;
+  const washerRemaining = room.washerRemaining
+    ? entities[room.washerRemaining]?.state
+    : undefined;
+  const dryerStatus = room.dryerStatus
+    ? entities[room.dryerStatus]?.state
+    : undefined;
+  const dryerRemaining = room.dryerRemaining
+    ? entities[room.dryerRemaining]?.state
+    : undefined;
+
   return {
     temp,
     humidity,
@@ -239,5 +259,9 @@ export function useRoomState(room: RoomConfig, entities: HassEntities): RoomStat
     isMuted,
     dishwasherStatus,
     dishwasherRemaining,
+    washerStatus,
+    washerRemaining,
+    dryerStatus,
+    dryerRemaining,
   };
 }

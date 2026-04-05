@@ -247,6 +247,10 @@ button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select
   animation: slider-glow 1.2s ease-in-out infinite;
 }
 
+@utility animate-spin-slow {
+  animation: control-spin 3s linear infinite;
+}
+
 /* Subtle noise texture for depth — SVG feTurbulence applied to a rect.
    Key: filter must be applied to visible content (rect), and # encoded as %23 in data URIs. */
 #root::after {
