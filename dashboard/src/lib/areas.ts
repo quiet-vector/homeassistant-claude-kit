@@ -56,6 +56,12 @@ export interface RoomConfig {
 
   // Covers/blinds
   covers?: string[];
+
+  // Appliances
+  washerStatus?: string;
+  washerRemaining?: string;
+  dryerStatus?: string;
+  dryerRemaining?: string;
 }
 
 // Floor level constants
@@ -165,6 +171,10 @@ export const ROOMS: RoomConfig[] = [
     floor: UPPER,
     icon: "mdi:washing-machine",
     lights: [],
+    washerStatus: "sensor.washer_current_status",
+    washerRemaining: "sensor.washer_remaining_time",
+    dryerStatus: "sensor.dryer_current_status",
+    dryerRemaining: "sensor.dryer_remaining_time",
   },
   {
     id: "family_room",

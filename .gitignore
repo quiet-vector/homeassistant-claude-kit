@@ -177,6 +177,10 @@ config/esphome/secrets.yaml
 # Working files / scratch
 nr_flow_edited.json
 
+# Node-RED runtime files (keep only flows.json)
+config/node-red/.sessions/
+config/node-red/flows_cred.json
+
 # Public kit specific
 config/go2rtc.yaml
 .claude/projects/
