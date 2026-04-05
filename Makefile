@@ -24,7 +24,7 @@ YELLOW = \033[1;33m
 RED = \033[0;31m
 NC = \033[0m # No Color
 
-.PHONY: help pull push diff validate backup clean setup test status entities reload format-yaml check-env dashboard deploy-dashboard privacy-on privacy-off privacy-status
+.PHONY: help pull push diff validate backup clean setup test status entities reload format-yaml check-env dashboard deploy-dashboard privacy-on privacy-off privacy-status pull-nr push-nr
 
 # Default target
 help:
@@ -268,6 +268,27 @@ validate-references: check-setup
 
 validate-ha: check-setup
 	@. $(VENV_PATH)/bin/activate && python $(TOOLS_PATH)/ha_official_validator.py
+
+# Node-RED flow management
+NR_REMOTE_PATH ?= /addon_configs/a0d7b954_nodered/flows.json
+NR_LOCAL_PATH ?= config/node-red/flows.json
+
+pull-nr: check-env
+	@echo "$(GREEN)Pulling Node-RED flows from Home Assistant...$(NC)"
+	@mkdir -p config/node-red
+	@scp "$(SSH_USER)@$(HA_HOST):$(NR_REMOTE_PATH)" "$(NR_LOCAL_PATH)"
+	@echo "$(GREEN)Node-RED flows pulled to $(NR_LOCAL_PATH)$(NC)"
+
+push-nr: check-env
+	@echo "$(GREEN)Pushing Node-RED flows to Home Assistant...$(NC)"
+	@scp "$(NR_LOCAL_PATH)" "$(SSH_USER)@$(HA_HOST):$(NR_REMOTE_PATH)"
+	@echo "$(GREEN)Flows pushed. Restarting Node-RED addon...$(NC)"
+	@. $(VENV_PATH)/bin/activate && python3 -c "\
+import urllib.request, json, os; \
+url = os.environ['HA_URL'] + '/api/services/hassio/addon_restart'; \
+req = urllib.request.Request(url, data=json.dumps({'addon': 'a0d7b954_nodered'}).encode(), \
+  headers={'Authorization': 'Bearer ' + os.environ['HA_TOKEN'], 'Content-Type': 'application/json'}); \
+urllib.request.urlopen(req); print('Node-RED restarting...')"
 
 # SSH connectivity test
 test-ssh:

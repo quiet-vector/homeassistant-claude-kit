@@ -435,6 +435,34 @@
 
 # ── Appliance Alerts ─────────────────────────────────────────────────────────
 
+- id: appliance_oven_left_on
+  alias: "Oven Left On — Away or Night"
+  description: "Alert if the range is still on when JARVIS switches to away or night"
+  triggers:
+    - trigger: state
+      entity_id: input_select.jarvis_mode
+      to:
+        - night
+        - away
+  conditions:
+    - condition: not
+      conditions:
+        - condition: state
+          entity_id: sensor.kitchen_range_upper_current_status
+          state:
+            - "initial"
+            - "power_off"
+            - "unknown"
+            - "unavailable"
+  actions:
+    - action: notify.mobile_app_phil_s_iphone_14_pro_max
+      data:
+        title: "⚠️ Oven Left On"
+        message: >
+          The range is still on ({{ states('sensor.kitchen_range_upper_current_status') }})
+          and JARVIS has switched to {{ trigger.to_state.state }} mode.
+  mode: single
+
 - id: appliance_fridge_door_open
   alias: "Fridge Door Left Open"
   description: "Alert if the refrigerator door is left open for more than 2 minutes"
