@@ -471,12 +471,12 @@
         message: "The washing machine has finished. Time to move the laundry!"
     - action: media_player.volume_set
       target:
-        entity_id: media_player.master_bedroom_wifi
+        entity_id: media_player.nesthub7a14_2
       data:
         volume_level: 0.4
-    - action: tts.google_translate_say
+    - action: tts.google_translate_en_com
       target:
-        entity_id: media_player.master_bedroom_wifi
+        entity_id: media_player.nesthub7a14_2
       data:
         message: "The washing machine has finished."
   mode: single
@@ -500,12 +500,12 @@
         message: "The dryer has finished."
     - action: media_player.volume_set
       target:
-        entity_id: media_player.master_bedroom_wifi
+        entity_id: media_player.nesthub7a14_2
       data:
         volume_level: 0.4
-    - action: tts.google_translate_say
+    - action: tts.google_translate_en_com
       target:
-        entity_id: media_player.master_bedroom_wifi
+        entity_id: media_player.nesthub7a14_2
       data:
         message: "The dryer has finished."
   mode: single
