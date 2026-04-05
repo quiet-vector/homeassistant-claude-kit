@@ -432,3 +432,80 @@
       entity_id: input_boolean.front_door_bypass
     data: {}
   mode: single
+
+# ── Appliance Alerts ─────────────────────────────────────────────────────────
+
+- id: appliance_fridge_door_open
+  alias: "Fridge Door Left Open"
+  description: "Alert if the refrigerator door is left open for more than 2 minutes"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.refrigerator_door
+      to: "on"
+      for:
+        minutes: 2
+  conditions: []
+  actions:
+    - action: notify.mobile_app_phil_s_iphone_14_pro_max
+      data:
+        title: "Fridge Door Open"
+        message: "The refrigerator door has been open for 2 minutes."
+  mode: single
+
+- id: appliance_washer_done
+  alias: "Washer Done"
+  description: "Announce when the washing machine cycle completes"
+  triggers:
+    - trigger: state
+      entity_id: event.washer_notification
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.event_type == 'washing_is_complete' }}"
+    - condition: state
+      entity_id: input_boolean.quiet_hours
+      state: "off"
+  actions:
+    - action: notify.mobile_app_phil_s_iphone_14_pro_max
+      data:
+        title: "Washer Done"
+        message: "The washing machine has finished. Time to move the laundry!"
+    - action: media_player.volume_set
+      target:
+        entity_id: media_player.master_bedroom_wifi
+      data:
+        volume_level: 0.4
+    - action: tts.google_translate_say
+      target:
+        entity_id: media_player.master_bedroom_wifi
+      data:
+        message: "The washing machine has finished."
+  mode: single
+
+- id: appliance_dryer_done
+  alias: "Dryer Done"
+  description: "Announce when the dryer cycle completes"
+  triggers:
+    - trigger: state
+      entity_id: event.dryer_notification
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.to_state.attributes.event_type == 'drying_is_complete' }}"
+    - condition: state
+      entity_id: input_boolean.quiet_hours
+      state: "off"
+  actions:
+    - action: notify.mobile_app_phil_s_iphone_14_pro_max
+      data:
+        title: "Dryer Done"
+        message: "The dryer has finished."
+    - action: media_player.volume_set
+      target:
+        entity_id: media_player.master_bedroom_wifi
+      data:
+        volume_level: 0.4
+    - action: tts.google_translate_say
+      target:
+        entity_id: media_player.master_bedroom_wifi
+      data:
+        message: "The dryer has finished."
+  mode: single
