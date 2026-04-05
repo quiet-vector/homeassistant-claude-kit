@@ -502,10 +502,11 @@
         entity_id: media_player.nesthub7a14_2
       data:
         volume_level: 0.4
-    - action: tts.google_translate_en_com
+    - action: tts.speak
       target:
-        entity_id: media_player.nesthub7a14_2
+        entity_id: tts.google_translate_en_com
       data:
+        media_player_entity_id: media_player.nesthub7a14_2
         message: "The washing machine has finished."
   mode: single
 
@@ -531,9 +532,10 @@
         entity_id: media_player.nesthub7a14_2
       data:
         volume_level: 0.4
-    - action: tts.google_translate_en_com
+    - action: tts.speak
       target:
-        entity_id: media_player.nesthub7a14_2
+        entity_id: tts.google_translate_en_com
       data:
+        media_player_entity_id: media_player.nesthub7a14_2
         message: "The dryer has finished."
   mode: single
