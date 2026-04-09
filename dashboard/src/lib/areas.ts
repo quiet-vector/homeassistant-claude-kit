@@ -80,7 +80,7 @@ export const ROOMS: RoomConfig[] = [
     occupancySensor: "binary_sensor.hue_motion_lr_occupancy",
     temperatureSensor: "sensor.hue_motion_lr_temperature",
     illuminanceSensor: "sensor.hue_motion_lr_illuminance",
-    mediaPlayers: ["media_player.nesthub7a14_2"],
+    mediaPlayers: ["media_player.living_room_display"],
   },
   {
     id: "kitchen",
