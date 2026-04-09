@@ -432,110 +432,123 @@
       entity_id: input_boolean.front_door_bypass
     data: {}
   mode: single
-
-# ── Appliance Alerts ─────────────────────────────────────────────────────────
-
 - id: appliance_oven_left_on
-  alias: "Oven Left On — Away or Night"
-  description: "Alert if the range is still on when JARVIS switches to away or night"
+  alias: Oven Left On — Away or Night
+  description: Alert if the range is still on when JARVIS switches to away or night
   triggers:
-    - trigger: state
-      entity_id: input_select.jarvis_mode
-      to:
-        - night
-        - away
+  - trigger: state
+    entity_id: input_select.jarvis_mode
+    to:
+    - night
+    - away
   conditions:
-    - condition: not
-      conditions:
-        - condition: state
-          entity_id: sensor.kitchen_range_upper_current_status
-          state:
-            - "initial"
-            - "power_off"
-            - "unknown"
-            - "unavailable"
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: sensor.kitchen_range_upper_current_status
+      state:
+      - initial
+      - power_off
+      - unknown
+      - unavailable
   actions:
-    - action: notify.mobile_app_phil_s_iphone_14_pro_max
-      data:
-        title: "⚠️ Oven Left On"
-        message: >
-          The range is still on ({{ states('sensor.kitchen_range_upper_current_status') }})
-          and JARVIS has switched to {{ trigger.to_state.state }} mode.
-  mode: single
+  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+    data:
+      title: ⚠️ Oven Left On
+      message: 'The range is still on ({{ states(''sensor.kitchen_range_upper_current_status'')
+        }}) and JARVIS has switched to {{ trigger.to_state.state }} mode.
 
+        '
+  mode: single
 - id: appliance_fridge_door_open
-  alias: "Fridge Door Left Open"
-  description: "Alert if the refrigerator door is left open for more than 2 minutes"
+  alias: Fridge Door Left Open
+  description: Alert if the refrigerator door is left open for more than 2 minutes
   triggers:
-    - trigger: state
-      entity_id: binary_sensor.refrigerator_door
-      to: "on"
-      for:
-        minutes: 2
+  - trigger: state
+    entity_id: binary_sensor.refrigerator_door
+    to: 'on'
+    for:
+      minutes: 2
   conditions: []
   actions:
-    - action: notify.mobile_app_phil_s_iphone_14_pro_max
-      data:
-        title: "Fridge Door Open"
-        message: "The refrigerator door has been open for 2 minutes."
+  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+    data:
+      title: Fridge Door Open
+      message: The refrigerator door has been open for 2 minutes.
   mode: single
-
 - id: appliance_washer_done
-  alias: "Washer Done"
-  description: "Announce when the washing machine cycle completes"
+  alias: Washer Done
+  description: Announce when the washing machine cycle completes
   triggers:
-    - trigger: state
-      entity_id: event.washer_notification
+  - trigger: state
+    entity_id: event.washer_notification
   conditions:
-    - condition: template
-      value_template: "{{ trigger.to_state.attributes.event_type == 'washing_is_complete' }}"
-    - condition: state
-      entity_id: input_boolean.quiet_hours
-      state: "off"
+  - condition: template
+    value_template: '{{ trigger.to_state.attributes.event_type == ''washing_is_complete''
+      }}'
+  - condition: state
+    entity_id: input_boolean.quiet_hours
+    state: 'off'
   actions:
-    - action: notify.mobile_app_phil_s_iphone_14_pro_max
-      data:
-        title: "Washer Done"
-        message: "The washing machine has finished. Time to move the laundry!"
-    - action: media_player.volume_set
-      target:
-        entity_id: media_player.nesthub7a14_2
-      data:
-        volume_level: 0.4
-    - action: tts.speak
-      target:
-        entity_id: tts.google_translate_en_com
-      data:
-        media_player_entity_id: media_player.nesthub7a14_2
-        message: "The washing machine has finished."
+  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+    data:
+      title: Washer Done
+      message: The washing machine has finished. Time to move the laundry!
+  - action: tts.speak
+    target:
+      entity_id: tts.google_translate_en_com
+    data:
+      media_player_entity_id: media_player.living_room_display
+      message: The washing machine has finished. Time to move the laundry!
+      cache: false
+  - action: media_player.volume_set
+    target:
+      entity_id: media_player.family_room_wifi
+    data:
+      volume_level: 0.8
+  - action: tts.speak
+    target:
+      entity_id: tts.google_translate_en_com
+    data:
+      media_player_entity_id: media_player.family_room_wifi
+      message: The washing machine has finished. Time to move the laundry!
+      cache: false
   mode: single
-
 - id: appliance_dryer_done
-  alias: "Dryer Done"
-  description: "Announce when the dryer cycle completes"
+  alias: Dryer Done
+  description: Announce when the dryer cycle completes
   triggers:
-    - trigger: state
-      entity_id: event.dryer_notification
+  - trigger: state
+    entity_id: event.dryer_notification
   conditions:
-    - condition: template
-      value_template: "{{ trigger.to_state.attributes.event_type == 'drying_is_complete' }}"
-    - condition: state
-      entity_id: input_boolean.quiet_hours
-      state: "off"
+  - condition: template
+    value_template: '{{ trigger.to_state.attributes.event_type == ''drying_is_complete''
+      }}'
+  - condition: state
+    entity_id: input_boolean.quiet_hours
+    state: 'off'
   actions:
-    - action: notify.mobile_app_phil_s_iphone_14_pro_max
-      data:
-        title: "Dryer Done"
-        message: "The dryer has finished."
-    - action: media_player.volume_set
-      target:
-        entity_id: media_player.nesthub7a14_2
-      data:
-        volume_level: 0.4
-    - action: tts.speak
-      target:
-        entity_id: tts.google_translate_en_com
-      data:
-        media_player_entity_id: media_player.nesthub7a14_2
-        message: "The dryer has finished."
+  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+    data:
+      title: Dryer Done
+      message: The dryer has finished.
+  - action: tts.speak
+    target:
+      entity_id: tts.google_translate_en_com
+    data:
+      media_player_entity_id: media_player.living_room_display
+      message: The dryer has finished. Time to fold the laundry!
+      cache: false
+  - action: media_player.volume_set
+    target:
+      entity_id: media_player.family_room_wifi
+    data:
+      volume_level: 0.8
+  - action: tts.speak
+    target:
+      entity_id: tts.google_translate_en_com
+    data:
+      media_player_entity_id: media_player.family_room_wifi
+      message: The dryer has finished. Time to fold the laundry!
+      cache: false
   mode: single
