@@ -108,9 +108,9 @@ template:
         icon: mdi:brightness-6
         state: >
           {% set conf = states('sensor.weather_brain_daylight_confidence') | float(0) %}
-          {% if conf >= 75 %}
+          {% if conf >= 65 %}
             bright
-          {% elif conf >= 50 %}
+          {% elif conf >= 45 %}
             normal
           {% elif conf >= 25 %}
             dim
@@ -130,7 +130,7 @@ template:
           {% if light_class == 'bright' %}
             {% set pressure = 10 %}
           {% elif light_class == 'normal' %}
-            {% set pressure = 35 %}
+            {% set pressure = 25 %}
           {% elif light_class == 'dim' %}
             {% set pressure = 65 %}
           {% else %}
