@@ -1,6 +1,7 @@
 # Whole-home energy tracking via Shelly Pro 3EM
-# Billing cycle resets on the ~19th (offset: 18 days from 1st).
-# Rate and service fee are configured via input_number helpers.
+# Billing cycle: bimonthly, resets on the ~19th (offset: 18 days).
+# With bimonthly + offset 18, HA aligns to Jan/Mar/May/Jul/Sep/Nov 19.
+# Rate, service fee, and HST are configured via input_number helpers.
 
 input_number:
   ns_power_service_fee:
@@ -10,6 +11,15 @@ input_number:
     step: 0.01
     unit_of_measurement: "CAD"
     icon: mdi:currency-usd
+    mode: box
+
+  ns_power_hst_rate:
+    name: NS Power HST Rate
+    min: 0
+    max: 0.30
+    step: 0.001
+    unit_of_measurement: "%"
+    icon: mdi:percent
     mode: box
 
 utility_meter:
@@ -24,7 +34,7 @@ utility_meter:
 
   shelly_billing_cycle_energy:
     source: sensor.shellypro3em_841fe8904ea0_energy
-    cycle: monthly
+    cycle: bimonthly
     offset:
       days: 18
 
@@ -37,8 +47,9 @@ template:
         state_class: total_increasing
         icon: mdi:currency-usd
         state: >
-          {{ ((states('sensor.shelly_daily_energy') | float(0))
-              * (states('sensor.ns_power_rate') | float(0))) | round(2) }}
+          {{ (((states('sensor.shelly_daily_energy') | float(0))
+               * (states('sensor.ns_power_rate') | float(0)))
+              * (1 + (states('input_number.ns_power_hst_rate') | float(0)))) | round(2) }}
 
       - name: "Home Monthly Energy Cost"
         unique_id: home_monthly_energy_cost
@@ -47,8 +58,9 @@ template:
         state_class: total_increasing
         icon: mdi:currency-usd
         state: >
-          {{ ((states('sensor.shelly_monthly_energy') | float(0))
-              * (states('sensor.ns_power_rate') | float(0))) | round(2) }}
+          {{ (((states('sensor.shelly_monthly_energy') | float(0))
+               * (states('sensor.ns_power_rate') | float(0)))
+              * (1 + (states('input_number.ns_power_hst_rate') | float(0)))) | round(2) }}
 
       - name: "Home Billing Cycle Energy Cost"
         unique_id: home_billing_cycle_energy_cost
@@ -57,9 +69,10 @@ template:
         state_class: total_increasing
         icon: mdi:currency-usd
         state: >
-          {{ ((states('sensor.shelly_billing_cycle_energy') | float(0))
-              * (states('sensor.ns_power_rate') | float(0))
-              + states('input_number.ns_power_service_fee') | float(0)) | round(2) }}
+          {{ ((((states('sensor.shelly_billing_cycle_energy') | float(0))
+                * (states('sensor.ns_power_rate') | float(0)))
+               + (states('input_number.ns_power_service_fee') | float(0)))
+              * (1 + (states('input_number.ns_power_hst_rate') | float(0)))) | round(2) }}
 
       - name: "Home Daily Energy"
         unique_id: home_daily_energy
