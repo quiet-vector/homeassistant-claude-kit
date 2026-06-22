@@ -1,0 +1,95 @@
+# Whole-home energy tracking via Shelly Pro 3EM
+# Billing cycle resets on the ~19th (offset: 18 days from 1st).
+# Rate and service fee are configured via input_number helpers.
+
+input_number:
+  ns_power_service_fee:
+    name: NS Power Monthly Service Fee
+    min: 0
+    max: 100
+    step: 0.01
+    unit_of_measurement: "CAD"
+    icon: mdi:currency-usd
+    mode: box
+
+utility_meter:
+
+  shelly_daily_energy:
+    source: sensor.shellypro3em_841fe8904ea0_energy
+    cycle: daily
+
+  shelly_monthly_energy:
+    source: sensor.shellypro3em_841fe8904ea0_energy
+    cycle: monthly
+
+  shelly_billing_cycle_energy:
+    source: sensor.shellypro3em_841fe8904ea0_energy
+    cycle: monthly
+    offset:
+      days: 18
+
+template:
+  - sensor:
+      - name: "Home Daily Energy Cost"
+        unique_id: home_daily_energy_cost
+        unit_of_measurement: "CAD"
+        device_class: monetary
+        state_class: total_increasing
+        icon: mdi:currency-usd
+        state: >
+          {{ ((states('sensor.shelly_daily_energy') | float(0))
+              * (states('sensor.ns_power_rate') | float(0))) | round(2) }}
+
+      - name: "Home Monthly Energy Cost"
+        unique_id: home_monthly_energy_cost
+        unit_of_measurement: "CAD"
+        device_class: monetary
+        state_class: total_increasing
+        icon: mdi:currency-usd
+        state: >
+          {{ ((states('sensor.shelly_monthly_energy') | float(0))
+              * (states('sensor.ns_power_rate') | float(0))) | round(2) }}
+
+      - name: "Home Billing Cycle Energy Cost"
+        unique_id: home_billing_cycle_energy_cost
+        unit_of_measurement: "CAD"
+        device_class: monetary
+        state_class: total_increasing
+        icon: mdi:currency-usd
+        state: >
+          {{ ((states('sensor.shelly_billing_cycle_energy') | float(0))
+              * (states('sensor.ns_power_rate') | float(0))
+              + states('input_number.ns_power_service_fee') | float(0)) | round(2) }}
+
+      - name: "Home Daily Energy"
+        unique_id: home_daily_energy
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >
+          {{ states('sensor.shelly_daily_energy') | float(0) | round(3) }}
+
+      - name: "Home Monthly Energy"
+        unique_id: home_monthly_energy
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >
+          {{ states('sensor.shelly_monthly_energy') | float(0) | round(3) }}
+
+      - name: "Home Billing Cycle Energy"
+        unique_id: home_billing_cycle_energy
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >
+          {{ states('sensor.shelly_billing_cycle_energy') | float(0) | round(3) }}
+
+      - name: "Home Power Now"
+        unique_id: home_power_now
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        icon: mdi:flash
+        state: >
+          {{ states('sensor.shellypro3em_841fe8904ea0_power') | float(0) | round(1) }}

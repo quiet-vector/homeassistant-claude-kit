@@ -42,13 +42,18 @@
 
 ## Energy / Solar
 
-<!-- Only fill in if you have solar/EV -->
-
-- Solar inverter: _
-- Inverter integration: _
-- Key sensors: `sensor.solar_power`, `sensor.grid_power`, `sensor.battery_level`
-- EV charger: (OCPP / other)
-- EV: (Tesla / other)
+- Whole-home energy monitor: Shelly Pro 3EM (split-phase North American panel; Phase A = L1, Phase C = L2, Phase B unused)
+- Integration: native Shelly integration
+- Source energy sensor: `sensor.shellypro3em_841fe8904ea0_energy` (lifetime kWh)
+- Current power: `sensor.shellypro3em_841fe8904ea0_power` (W)
+- Utility meters (package `config/packages/energy_tracking.yaml`):
+  - `sensor.shelly_daily_energy` — resets midnight
+  - `sensor.shelly_monthly_energy` — resets 1st of month
+  - `sensor.shelly_billing_cycle_energy` — resets ~19th (offset: 18 days), next reset July 19
+- Cost sensors: `sensor.home_daily_energy_cost`, `sensor.home_monthly_energy_cost`, `sensor.home_billing_cycle_energy_cost`
+  - Billing cycle cost includes `input_number.ns_power_service_fee` ($20.08/month fixed charge)
+- Rate: `input_number.ns_power_energy_rate` = 0.19128 CAD/kWh (effective 2026-05-01, NS Power)
+- Service fee: `input_number.ns_power_service_fee` = 20.08 CAD/month
 
 ## Security / Cameras
 
