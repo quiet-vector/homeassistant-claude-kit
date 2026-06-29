@@ -7,4 +7,19 @@ good_night_3:
       entity_id: input_select.jarvis_mode
     data:
       option: night
+  - action: light.turn_off
+    target:
+      entity_id:
+      - light.living_room
+      - light.primary_bedroom
+      - light.family_room
+      - light.kennedys_bedroom
+      - light.office_lamp
+    data:
+      transition: 3
+  - action: light.turn_on
+    target:
+      entity_id: light.night_light_stairwell
+    data:
+      brightness_pct: 20
   description: ''
