@@ -22,4 +22,7 @@ good_night_3:
       entity_id: light.night_light_stairwell
     data:
       brightness_pct: 20
+  - action: switch.turn_off
+    target:
+      entity_id: switch.back_yard_p400m_patio_lights
   description: ''
