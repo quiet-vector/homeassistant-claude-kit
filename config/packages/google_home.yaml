@@ -1,0 +1,27 @@
+# Google Home routine bridges
+# These input_booleans are exposed to Google Home as switches so that
+# Google Home routines can trigger HA logic via a direct Device action
+# instead of the unreliable "Ask Google" voice-command round-trip.
+
+input_boolean:
+  good_night_trigger:
+    name: Good Night Trigger
+    icon: mdi:weather-night
+
+automation:
+  - id: google_good_night_trigger
+    alias: Google — Good Night Trigger
+    description: Google Home routine turns this on; script runs then it resets itself
+    triggers:
+      - trigger: state
+        entity_id: input_boolean.good_night_trigger
+        to: 'on'
+    conditions: []
+    actions:
+      - action: script.good_night_3
+        data: {}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.good_night_trigger
+        data: {}
+    mode: single
