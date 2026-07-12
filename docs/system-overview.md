@@ -78,6 +78,27 @@
 - Tracking method: (HA companion app / router / BLE)
 - Person entities: _
 
+## Notifications / Alerts
+
+All personal push alerts go through a single legacy notify group defined in
+`configuration.yaml`:
+
+- `notify.household` → members: `mobile_app_phil_s_iphone_14_pro_max`,
+  `mobile_app_kristines_iphone_14_pro_max`
+- To add/remove a recipient for **every** alert at once, edit the `services:`
+  list of that group. **A HA Core restart is required** — legacy notify groups
+  load only at startup (there is no `notify.reload` service).
+
+Consumers of `notify.household`:
+- `config/automations.yaml` — Oven Left On, Fridge Door Left Open, Washer Done,
+  Dryer Done.
+- `config/node-red/flows.json` — security posture alerts (Push Critical /
+  Warning / Clear). The Node-RED **add-on** (`a0d7b954_nodered`) must be
+  restarted to pick up flow changes; a Core restart does not restart add-ons.
+
+`notify.notify` (JARVIS night/exit-mode status messages) is intentionally left
+on the default target, not the household group.
+
 ## Key Helpers Registry
 
 <!-- Once the setup interview runs, this section will list all helpers created -->
@@ -105,3 +126,10 @@
 <!-- Document quirks specific to your hardware here.
      Example: "Dishwasher WiFi dies after cycle end (EU ecodesign) — state
      machine uses input_select that persists independently." -->
+
+- **`make push` is unsafe in the current repo state.** It runs
+  `rsync --delete`, but `.rsync-excludes-push` does not exclude `.env`,
+  `claude-code-ha/`, `CLAUDE.md`, or the remote `esphome/.git`, so a full push
+  would delete those from `/config` on HA. Until the exclude file is fixed,
+  deploy individual changed files with a targeted `rsync` (no `--delete`)
+  instead of `make push`.

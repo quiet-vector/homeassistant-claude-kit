@@ -10,6 +10,15 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+# Household push notification group — single target for all personal alerts.
+# Add or remove phones here to change who receives every alert at once.
+notify:
+  - platform: group
+    name: household
+    services:
+      - service: mobile_app_phil_s_iphone_14_pro_max
+      - service: mobile_app_kristines_iphone_14_pro_max
+
 template:
   - sensor:
       - name: "NS Power Rate"

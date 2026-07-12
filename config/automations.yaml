@@ -452,7 +452,7 @@
       - unknown
       - unavailable
   actions:
-  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+  - action: notify.household
     data:
       title: ⚠️ Oven Left On
       message: 'The range is still on ({{ states(''sensor.kitchen_range_upper_current_status'')
@@ -471,7 +471,7 @@
       minutes: 2
   conditions: []
   actions:
-  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+  - action: notify.household
     data:
       title: Fridge Door Open
       message: The refrigerator door has been open for 2 minutes.
@@ -490,7 +490,7 @@
     entity_id: input_boolean.quiet_hours
     state: 'off'
   actions:
-  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+  - action: notify.household
     data:
       title: Washer Done
       message: The washing machine has finished. Time to move the laundry!
@@ -528,7 +528,7 @@
     entity_id: input_boolean.quiet_hours
     state: 'off'
   actions:
-  - action: notify.mobile_app_phil_s_iphone_14_pro_max
+  - action: notify.household
     data:
       title: Dryer Done
       message: The dryer has finished.
