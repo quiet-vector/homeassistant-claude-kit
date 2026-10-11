@@ -89,6 +89,14 @@ All personal push alerts go through a single legacy notify group defined in
   list of that group. **A HA Core restart is required** — legacy notify groups
   load only at startup (there is no `notify.reload` service).
 
+> **Do not "fix" the `_14_pro_max` in Kristine's service name.** Her phone is now an
+> iPhone 18 (device renamed to "Kristine's iPhone 18", entities `kristines_iphone_18_*`),
+> but the **legacy notify service name is derived from the config entry's stored
+> `device_name`, not the device-registry name** — renaming the device does *not* rename
+> the service. `mobile_app_kristines_iphone_14_pro_max` is the correct, live target for
+> her iPhone 18. It can only be changed by renaming the device inside the companion app
+> (App Configuration → Device Name) so it re-registers.
+
 Consumers of `notify.household`:
 - `config/automations.yaml` — Oven Left On, Fridge Door Left Open, Washer Done,
   Dryer Done.

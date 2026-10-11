@@ -178,7 +178,7 @@ template:
         unique_id: kristine_home
         device_class: presence
         state: >
-          {% set wifi = states('device_tracker.kristine_s_iphone_14_pro_max') %}
+          {% set wifi = states('device_tracker.unifi_default_22_aa_3c_58_19_86') %}
           {{ wifi == 'home' }}
 
       - name: "Kennedy Home"
