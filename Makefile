@@ -18,6 +18,15 @@ BACKUP_DIR ?= backups
 VENV_PATH ?= venv
 TOOLS_PATH ?= tools
 
+# The `hass --script check_config` validator must match the live instance,
+# otherwise it fatally fails trying to downgrade .storage (e.g. "Migrating
+# core.device_registry storage from 3.4 to 1.8"). homeassistant 2026.9.3
+# requires Python >= 3.14.2, so a 3.12/3.13 venv silently caps pip at
+# homeassistant 2025.1.4 and the check validates against the wrong schema.
+# Keep HA_PY_VERSION in step with the instance (`ha-api get config`).
+PYTHON_BIN ?= python3.14
+HA_PY_VERSION ?= 2026.9.3
+
 # Colors for output
 GREEN = \033[0;32m
 YELLOW = \033[1;33m
@@ -94,10 +103,15 @@ backup:
 
 # Set up Python environment and dependencies
 setup:
-	@echo "$(GREEN)Setting up Python environment...$(NC)"
-	@python3 -m venv $(VENV_PATH)
+	@command -v $(PYTHON_BIN) >/dev/null 2>&1 || { \
+	  echo "$(RED)$(PYTHON_BIN) not found.$(NC)"; \
+	  echo "homeassistant $(HA_PY_VERSION) requires Python >= 3.14.2."; \
+	  echo "Install it with:  brew install python@3.14"; \
+	  exit 1; }
+	@echo "$(GREEN)Setting up Python environment ($(PYTHON_BIN))...$(NC)"
+	@$(PYTHON_BIN) -m venv $(VENV_PATH)
 	@. $(VENV_PATH)/bin/activate && pip install --upgrade pip
-	@. $(VENV_PATH)/bin/activate && pip install homeassistant voluptuous pyyaml jsonschema requests
+	@. $(VENV_PATH)/bin/activate && pip install "homeassistant==$(HA_PY_VERSION)" voluptuous pyyaml jsonschema requests
 	@echo "$(GREEN)Setup complete!$(NC)"
 
 # Show configuration status

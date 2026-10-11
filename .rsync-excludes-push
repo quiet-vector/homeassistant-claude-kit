@@ -35,6 +35,49 @@ secrets.yaml
 *.temp
 
 # ===========================================
+# CRITICAL: on-HA tooling — NEVER delete
+# /homeassistant/claude-code-ha/ holds ha-api / ha-ws and survives HA OS
+# updates. It does not exist locally, so without this exclude `rsync --delete`
+# wipes the tooling this whole workflow depends on.
+# ===========================================
+claude-code-ha/
+
+# ===========================================
+# Add-on runtime state — managed by the add-ons, not by us.
+# Local copies are stale; pushing them rolls back live state.
+# zigbee2mqtt: database.db / state.json / coordinator_backup.json ARE the
+# Zigbee network (device pairings). Overwriting them can break the mesh.
+# ===========================================
+zigbee2mqtt/
+esphome/
+
+# Node-RED flows have a dedicated path: `make pull-nr` / `make push-nr`,
+# which also restarts the a0d7b954_nodered add-on. A plain push would
+# overwrite flows without restarting, so the add-on would ignore them.
+node-red/
+
+# HA brand/icon cache — regenerated at runtime
+.cache/
+
+# ===========================================
+# On-HA files that do not exist in this repo.
+# NOTE: /config is a SYMLINK to /homeassistant, so these are the same dir.
+# .env holds the HA-side API token used by ha-api / ha-ws — deleting it
+# breaks the tooling. CLAUDE.md is installed on HA by claude-code-ha.
+# ===========================================
+.env
+.env.*
+CLAUDE.md
+*.bak-*
+
+# ===========================================
+# HA runtime files — must never be overwritten with stale local copies.
+# A stale .HA_VERSION can trigger a spurious version migration on start.
+# ===========================================
+.HA_VERSION
+.ha_run.lock
+
+# ===========================================
 # CRITICAL: NEVER PUSH .storage/ TO HA
 # These contain runtime state that HA manages:
 # - Integration configs (Shelly, Tuya, etc.)
