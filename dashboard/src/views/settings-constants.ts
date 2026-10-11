@@ -56,3 +56,25 @@ export const TRANSITIONS: NumberConfig[] = [
 //     description: "Activate work mode on presence",
 //     help: "Automatically enables work lighting when desk occupancy sensor detects presence." },
 // ];
+
+// ── Health check ──────────────────────────────────────────────────────
+//
+// Backing helpers are defined in config/packages/health_check.yaml. These are
+// written as literal entity IDs rather than lib/entities.ts constants because
+// the package creates them directly, so they are not setup-customize
+// placeholders that need populating.
+//
+// The run time (input_datetime.health_check_time) is not listed here:
+// SettingConfig only models numbers and booleans, and adding a time row would
+// mean a new control component. Adjust it in Home Assistant for now.
+
+export const HEALTH_CHECK_TOGGLES: BooleanConfig[] = [
+  { kind: "boolean", entity: "input_boolean.health_check_enabled", label: "Daily Health Scan",
+    description: "Check for dead phones and stuck entities",
+    help: "Runs once a day and sends a push only when something is wrong: a phone whose companion app has stopped reporting, or entities stuck unavailable. Silent when healthy." },
+];
+
+export const HEALTH_CHECK_NUMBERS: NumberConfig[] = [
+  { kind: "number", entity: "input_number.health_stale_hours", label: "Stale Threshold", unit: "h", min: 6, max: 168, step: 1,
+    help: "How long a phone must go without reporting, or an entity stay unavailable, before the scan flags it. Lower catches problems sooner but is noisier around reboots and brief outages." },
+];

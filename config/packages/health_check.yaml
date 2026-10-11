@@ -1,0 +1,93 @@
+# Silent-failure health check.
+#
+# binary_sensor.kristine_home was broken for months because nothing reports a
+# config that quietly stops matching reality. Dead phone registrations behave
+# the same way: no error is raised, the entities just stop updating.
+#
+# This runs on a schedule and pushes a summary only when something is wrong.
+#
+# Scope note: this covers the RUNTIME checks. Verifying that config files
+# reference entities that still exist needs filesystem access, so that check
+# lives in `make health` (tools/health_check.py) instead.
+
+input_boolean:
+  health_check_enabled:
+    name: Health Check Enabled
+    icon: mdi:heart-pulse
+
+input_number:
+  health_stale_hours:
+    name: Health Check Stale Threshold
+    icon: mdi:clock-alert-outline
+    min: 6
+    max: 168
+    step: 1
+    unit_of_measurement: h
+    mode: box
+
+input_datetime:
+  health_check_time:
+    name: Health Check Run Time
+    icon: mdi:clock-outline
+    has_date: false
+    has_time: true
+
+automation:
+  - id: health_check_scan
+    alias: Health Check — scan for silent failures
+    description: >-
+      Reports mobile_app devices that have stopped reporting and entities stuck
+      unavailable. Notifies only when there is something to report.
+    triggers:
+      - trigger: time
+        at: input_datetime.health_check_time
+    variables:
+      # A phone whose companion app has stopped still shows its last cached
+      # battery level, so `unavailable` does not detect it. What does is that
+      # nothing it pushes has updated recently. notify.* is deliberately
+      # excluded: that state tracks HA's send attempts, not the phone, and
+      # keeps advancing against a phone that never receives them.
+      problems: |
+        {%- set hours = states('input_number.health_stale_hours') | float(24) -%}
+        {%- set cutoff = as_timestamp(now()) - hours * 3600 -%}
+        {%- set ns = namespace(problems=[]) -%}
+        {%- set devs = integration_entities('mobile_app') | map('device_id')
+              | select('string') | unique | list -%}
+        {%- for d in devs -%}
+          {%- set ents = device_entities(d)
+                | select('match','^(sensor|binary_sensor|device_tracker)\.') | list -%}
+          {%- set nd = namespace(newest=0) -%}
+          {%- for e in ents -%}
+            {%- set t = as_timestamp(states[e].last_updated, 0) -%}
+            {%- if t > nd.newest -%}{%- set nd.newest = t -%}{%- endif -%}
+          {%- endfor -%}
+          {%- if ents | count > 0 and nd.newest < cutoff -%}
+            {%- set nm = device_attr(d,'name_by_user') or device_attr(d,'name') -%}
+            {%- set age = ((as_timestamp(now()) - nd.newest) / 3600) | round(0) | int -%}
+            {%- set ns.problems = ns.problems
+                  + ['phone "' ~ nm ~ '" has not reported in ' ~ age ~ 'h'] -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- set nu = namespace(c=0) -%}
+        {%- for s in states -%}
+          {%- if s.state == 'unavailable' and as_timestamp(s.last_changed, 0) < cutoff -%}
+            {%- set nu.c = nu.c + 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if nu.c > 0 -%}
+          {%- set ns.problems = ns.problems
+                + [nu.c ~ ' entities unavailable >' ~ hours | int ~ 'h'] -%}
+        {%- endif -%}
+        {{ ns.problems | join('\n') }}
+    conditions:
+      - condition: state
+        entity_id: input_boolean.health_check_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ problems | trim | length > 0 }}"
+    actions:
+      - action: notify.household
+        data:
+          title: HA health check
+          message: "{{ problems }}"
+    mode: single

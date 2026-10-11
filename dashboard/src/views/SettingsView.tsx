@@ -10,12 +10,15 @@ import {
 import {
   MOTION_TIMEOUTS,
   TRANSITIONS,
+  HEALTH_CHECK_TOGGLES,
+  HEALTH_CHECK_NUMBERS,
 } from "./settings-constants";
 import {
   SettingSection,
   SubSection,
   NumberRow,
-  // BooleanRow, NumericInputRow — uncomment as you add domain-specific settings
+  BooleanRow,
+  // NumericInputRow — uncomment as you add domain-specific settings
 } from "../components/controls/SettingControls";
 
 const ADVANCED_KEY = "ha-dashboard:settings-advanced";
@@ -36,6 +39,11 @@ export function SettingsView() {
   const setNumber = (entityId: string, value: number) => {
     if (!connection) return;
     callService(connection, "input_number", "set_value", { value }, { entity_id: entityId });
+  };
+
+  const toggleBoolean = (entityId: string) => {
+    if (!connection) return;
+    callService(connection, "input_boolean", "toggle", {}, { entity_id: entityId });
   };
 
   return (
@@ -75,6 +83,16 @@ export function SettingsView() {
             <NumberRow key={c.entity} config={c} onChange={setNumber} />
           ))}
         </SubSection>
+      </SettingSection>
+
+      {/* Health check */}
+      <SettingSection title="Health Check" icon="mdi:heart-pulse">
+        {HEALTH_CHECK_TOGGLES.map((c) => (
+          <BooleanRow key={c.entity} config={c} onToggle={toggleBoolean} />
+        ))}
+        {HEALTH_CHECK_NUMBERS.map((c) => (
+          <NumberRow key={c.entity} config={c} onChange={setNumber} />
+        ))}
       </SettingSection>
 
       {/* Domain-specific sections are added here as you configure your setup.
