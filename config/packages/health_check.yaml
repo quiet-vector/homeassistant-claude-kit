@@ -47,36 +47,66 @@ automation:
       # nothing it pushes has updated recently. notify.* is deliberately
       # excluded: that state tracks HA's send attempts, not the phone, and
       # keeps advancing against a phone that never receives them.
+      #
+      # Unavailable entities are grouped BY DEVICE. One offline camera is one
+      # problem, not the 32 entities it owns, and a raw entity count is not
+      # something you can act on.
+      #
+      # To silence a device or entity that is offline on purpose, add the
+      # `health_ignore` label to it in Home Assistant (Settings > Devices, or
+      # the entity's settings). No redeploy needed. Prefer labelling specific
+      # ENTITIES over a whole device when the device is otherwise healthy --
+      # labelling a live phone to hide a few unused iOS sensors would also
+      # hide that phone genuinely dying later.
       problems: |
         {%- set hours = states('input_number.health_stale_hours') | float(24) -%}
         {%- set cutoff = as_timestamp(now()) - hours * 3600 -%}
-        {%- set ns = namespace(problems=[]) -%}
+        {%- set ign_e = label_entities('health_ignore') -%}
+        {%- set ign_d = label_devices('health_ignore') -%}
+        {%- set ns = namespace(problems=[], dead=[]) -%}
         {%- set devs = integration_entities('mobile_app') | map('device_id')
               | select('string') | unique | list -%}
         {%- for d in devs -%}
-          {%- set ents = device_entities(d)
-                | select('match','^(sensor|binary_sensor|device_tracker)\.') | list -%}
-          {%- set nd = namespace(newest=0) -%}
-          {%- for e in ents -%}
-            {%- set t = as_timestamp(states[e].last_updated, 0) -%}
-            {%- if t > nd.newest -%}{%- set nd.newest = t -%}{%- endif -%}
-          {%- endfor -%}
-          {%- if ents | count > 0 and nd.newest < cutoff -%}
-            {%- set nm = device_attr(d,'name_by_user') or device_attr(d,'name') -%}
-            {%- set age = ((as_timestamp(now()) - nd.newest) / 3600) | round(0) | int -%}
-            {%- set ns.problems = ns.problems
-                  + ['phone "' ~ nm ~ '" has not reported in ' ~ age ~ 'h'] -%}
+          {%- if d not in ign_d -%}
+            {%- set ents = device_entities(d)
+                  | select('match','^(sensor|binary_sensor|device_tracker)\.') | list -%}
+            {%- set nd = namespace(newest=0) -%}
+            {%- for e in ents -%}
+              {%- set t = as_timestamp(states[e].last_updated, 0) -%}
+              {%- if t > nd.newest -%}{%- set nd.newest = t -%}{%- endif -%}
+            {%- endfor -%}
+            {%- if ents | count > 0 and nd.newest < cutoff -%}
+              {%- set nm = device_attr(d,'name_by_user') or device_attr(d,'name') -%}
+              {%- set age = ((as_timestamp(now()) - nd.newest) / 3600) | round(0) | int -%}
+              {%- set ns.problems = ns.problems
+                    + ['phone "' ~ nm ~ '" has not reported in ' ~ age ~ 'h'] -%}
+              {# remember it so the offline list below does not repeat it #}
+              {%- set ns.dead = ns.dead + [d] -%}
+            {%- endif -%}
           {%- endif -%}
         {%- endfor -%}
-        {%- set nu = namespace(c=0) -%}
+        {%- set nu = namespace(devs=[]) -%}
         {%- for s in states -%}
-          {%- if s.state == 'unavailable' and as_timestamp(s.last_changed, 0) < cutoff -%}
-            {%- set nu.c = nu.c + 1 -%}
+          {%- if s.state == 'unavailable' and as_timestamp(s.last_changed, 0) < cutoff
+                 and s.entity_id not in ign_e -%}
+            {%- set d = device_id(s.entity_id) -%}
+            {%- if d not in ign_d and d not in ns.dead -%}
+              {%- set nu.devs = nu.devs + [d if d else '~none'] -%}
+            {%- endif -%}
           {%- endif -%}
         {%- endfor -%}
-        {%- if nu.c > 0 -%}
+        {%- set groups = nu.devs | unique | list -%}
+        {# cap the list so a broad outage cannot produce an unreadable push #}
+        {%- for d in groups[:8] -%}
+          {%- set c = nu.devs | select('eq', d) | list | count -%}
+          {%- set nm = '(no device)' if d == '~none'
+                else ((device_attr(d,'name_by_user') or device_attr(d,'name')) or d) -%}
           {%- set ns.problems = ns.problems
-                + [nu.c ~ ' entities unavailable >' ~ hours | int ~ 'h'] -%}
+                + ['offline: ' ~ nm ~ ' (' ~ c ~ ' entities)'] -%}
+        {%- endfor -%}
+        {%- if groups | count > 8 -%}
+          {%- set ns.problems = ns.problems
+                + ['… and ' ~ (groups | count - 8) ~ ' more offline devices'] -%}
         {%- endif -%}
         {{ ns.problems | join('\n') }}
     conditions:
