@@ -33,7 +33,7 @@ YELLOW = \033[1;33m
 RED = \033[0;31m
 NC = \033[0m # No Color
 
-.PHONY: help pull push diff validate backup clean setup test status entities reload format-yaml check-env dashboard deploy-dashboard privacy-on privacy-off privacy-status pull-nr push-nr
+.PHONY: help pull push diff validate health backup clean setup test status entities reload format-yaml check-env dashboard deploy-dashboard privacy-on privacy-off privacy-status pull-nr push-nr
 
 # Default target
 help:
@@ -88,6 +88,13 @@ diff: check-env
 validate: check-setup
 	@echo "$(GREEN)Running Home Assistant configuration validation...$(NC)"
 	@. $(VENV_PATH)/bin/activate && python $(TOOLS_PATH)/run_tests.py
+
+# Silent-failure check against the LIVE instance. `validate` proves the config
+# parses; `health` proves it still matches reality -- dead phones, entities
+# stuck unavailable, and config referencing entities that no longer exist.
+health: check-env
+	@echo "$(GREEN)Running Home Assistant health check...$(NC)"
+	@. $(VENV_PATH)/bin/activate && python $(TOOLS_PATH)/health_check.py $(HEALTH_ARGS)
 
 # Alias for validate
 test: validate
