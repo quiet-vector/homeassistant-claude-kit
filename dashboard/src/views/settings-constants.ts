@@ -78,3 +78,16 @@ export const HEALTH_CHECK_NUMBERS: NumberConfig[] = [
   { kind: "number", entity: "input_number.health_stale_hours", label: "Stale Threshold", unit: "h", min: 6, max: 168, step: 1,
     help: "How long a phone must go without reporting, or an entity stay unavailable, before the scan flags it. Lower catches problems sooner but is noisier around reboots and brief outages." },
 ];
+
+// ── Litter robot ──────────────────────────────────────────────────────
+//
+// Backing helpers are defined in config/packages/litter_robot.yaml. Literal
+// entity IDs for the same reason as the health check block above: the package
+// creates them directly, so they are not setup-customize placeholders.
+
+export const LITTER_ROBOT_NUMBERS: NumberConfig[] = [
+  { kind: "number", entity: "input_number.litter_drawer_threshold_pct", label: "Drawer Alert At", unit: "%", min: 50, max: 100, step: 5,
+    help: "Waste-drawer fill level that triggers the full alert. The robot's own drawer-full status also triggers it regardless of this value, so this only controls how much advance warning you get." },
+  { kind: "number", entity: "input_number.litter_drawer_reminder_minutes", label: "Reminder Every", unit: "min", min: 15, max: 720, step: 15,
+    help: "How often the drawer-full alert repeats while the drawer stays full. Reminders pause during quiet hours and stop as soon as the drawer is emptied." },
+];

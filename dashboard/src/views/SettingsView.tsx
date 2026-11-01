@@ -12,6 +12,7 @@ import {
   TRANSITIONS,
   HEALTH_CHECK_TOGGLES,
   HEALTH_CHECK_NUMBERS,
+  LITTER_ROBOT_NUMBERS,
 } from "./settings-constants";
 import {
   SettingSection,
@@ -91,6 +92,13 @@ export function SettingsView() {
           <BooleanRow key={c.entity} config={c} onToggle={toggleBoolean} />
         ))}
         {HEALTH_CHECK_NUMBERS.map((c) => (
+          <NumberRow key={c.entity} config={c} onChange={setNumber} />
+        ))}
+      </SettingSection>
+
+      {/* Litter robot */}
+      <SettingSection title="Litter Robot" icon="mdi:cat">
+        {LITTER_ROBOT_NUMBERS.map((c) => (
           <NumberRow key={c.entity} config={c} onChange={setNumber} />
         ))}
       </SettingSection>

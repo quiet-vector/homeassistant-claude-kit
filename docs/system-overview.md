@@ -131,6 +131,10 @@ All personal push alerts go through a single legacy notify group defined in
 Consumers of `notify.household`:
 - `config/automations.yaml` — Oven Left On, Fridge Door Left Open, Washer Done,
   Dryer Done.
+- `config/packages/litter_robot.yaml` — Litter Drawer Full. Unlike the others
+  this one **repeats** on `input_number.litter_drawer_reminder_minutes` until
+  the drawer is emptied; see "Litter-Robot drawer alerts" below.
+- `config/packages/health_check.yaml` — daily silent-failure scan.
 - `config/node-red/flows.json` — security posture alerts (Push Critical /
   Warning / Clear). The Node-RED **add-on** (`a0d7b954_nodered`) must be
   restarted to pick up flow changes; a Core restart does not restart add-ons.
@@ -144,15 +148,44 @@ on the default target, not the household group.
 
 ### Input Booleans
 <!-- e.g. input_boolean.night_mode — Night Mode -->
+- `input_boolean.health_check_enabled` — Health Check Enabled
 
 ### Input Selects
 <!-- e.g. input_select.climate_mode — Climate Mode (Winter/Summer/Off) -->
 
 ### Input Numbers
 <!-- e.g. input_number.target_temperature — Target Temperature -->
+- `input_number.litter_drawer_threshold_pct` — Litter Drawer Alert Threshold (%)
+- `input_number.litter_drawer_reminder_minutes` — Litter Drawer Reminder Interval
+- `input_number.health_stale_hours` — Health Check Stale Threshold (h)
 
 ### Input Datetimes
 <!-- e.g. input_datetime.morning_work_day — Morning Wake Time (Work Day) -->
+
+### Litter-Robot drawer alerts
+
+`config/packages/litter_robot.yaml` follows the Washer Done / Dryer Done shape
+(push via `notify.household`, TTS to `media_player.living_room_display` and
+`media_player.family_room_wifi`, gated on `input_boolean.quiet_hours`) but
+**repeats** until the drawer is emptied.
+
+Two independent "full" signals, whichever fires first:
+
+- `sensor.litter_robot_4_waste_drawer` crossing
+  `input_number.litter_drawer_threshold_pct` — early warning, tunable
+- `sensor.litter_robot_4_status_code` reporting `df1` / `df2` / `dfs` — the
+  robot's own verdict (~2 cycles left / ~1 left / stopped). Catches the case
+  where it refuses to cycle at an unexpected fill level.
+
+Repetition is a `repeat … while` loop with a templated `delay`, rather than a
+`time_pattern` trigger, because a time pattern cannot take its interval from a
+helper. The `while` is re-evaluated each pass, so emptying the drawer or
+entering quiet hours ends the reminders with no second automation.
+
+Two triggers exist purely to re-arm that loop: `input_boolean.quiet_hours`
+going `off` (the loop exits when quiet hours start) and `homeassistant` start
+(a restart cancels any in-flight loop). `max_exceeded: silent` keeps triggers
+that land while the loop is already running out of the log.
 
 ## Automation Design Decisions
 
