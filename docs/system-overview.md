@@ -70,6 +70,37 @@
 - Media players: _
 - Remote entities: _
 
+### Google Cast requires HA to be on the IoT VLAN
+
+Cast devices live on **FLiP-IoT (VLAN 107)** while HA is on **FLiP-Control (VLAN
+60)**. As of a Google firmware rollout on **2026-10-31**, Cast devices refuse to
+serve their local API to clients on another subnet: the TCP connection to 8008 /
+8009 is accepted, then no data flows and pychromecast reports
+`_ssl.c:1064: The handshake operation timed out`. mDNS discovery still works, so
+the devices appear in HA but every one of them sits at `unavailable`.
+
+Rather than move the speakers out of IoT isolation, **HA is multi-homed onto VLAN
+107** so Cast traffic is sourced on-subnet:
+
+```
+ha network vlan end0 107 --ipv4-method auto --ipv4-route-metric 1000 --ipv6-method disabled
+```
+
+This created `end0.107` (DHCP, currently 192.168.107.17). Two details matter:
+
+- **`--ipv4-route-metric 1000`** keeps the `end0` default route (metric 100)
+  primary. Without it the IoT VLAN's gateway could take over egress.
+- **DHCP, not static** -- the FLiP-IoT pool spans `.2-.254`, so any static address
+  could later be leased to another device.
+
+VLAN 107 was already tagged on HA's switch port (USW Pro Max 16 PoE, port 2), so
+no UniFi change was needed. Because Cast now runs on-subnet, it bypasses the
+Internal -> IoT firewall rules entirely, and `IOT_GOOGLE_SPEAKERS` group
+membership no longer affects it.
+
+> Note: HA OS has no `nmcli` and `ha network` has no delete subcommand. To remove
+> a VLAN interface, use the HA UI: Settings > System > Network.
+
 ## People / Presence
 
 <!-- Person entities and tracking method -->
