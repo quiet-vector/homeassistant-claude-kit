@@ -384,6 +384,27 @@
       - input_boolean.garage_overhead_bypass
     data: {}
   mode: restart
+- id: garage_side_door_bypass_auto_off
+  alias: Garage Side Door Bypass Auto Off
+  description: Auto-clear the garage side door bypass after 2 hours
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.garage_door_bypass
+    to:
+    - 'on'
+    for:
+      hours: 2
+      minutes: 0
+      seconds: 0
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id:
+      - input_boolean.garage_door_bypass
+    data: {}
+  mode: restart
 - id: '1774053999728'
   alias: Front Door Bypass Auto On
   description: ''

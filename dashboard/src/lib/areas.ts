@@ -117,7 +117,7 @@ export const ROOMS: RoomConfig[] = [
     occupancySensor: "binary_sensor.g4_instant_garage_motion",
     camera: "camera.g4_instant_garage_high_resolution_channel",
     contactSensors: [
-      { entity: "binary_sensor.garage_door_contact", label: "Garage Door", type: "door" },
+      { entity: "binary_sensor.garage_door_contact", label: "Garage Side Door", type: "door" },
       { entity: "binary_sensor.garage_overhead_door", label: "Overhead Door", type: "door" },
     ],
   },
