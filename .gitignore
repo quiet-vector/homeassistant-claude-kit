@@ -170,6 +170,9 @@ config/.storage/
 config/zigbee2mqtt/database.db*
 config/zigbee2mqtt/state.json*
 config/zigbee2mqtt/log
+# Contains the live network key + per-device link keys in plaintext, and
+# changes on every pull (frame counters, timestamps) with no real diff.
+config/zigbee2mqtt/coordinator_backup.json
 
 # ESPHome secrets
 config/esphome/secrets.yaml
