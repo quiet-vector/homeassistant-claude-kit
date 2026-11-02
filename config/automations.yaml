@@ -486,7 +486,8 @@
   - action: notify.household
     data:
       title: Washer Done
-      message: The washing machine has finished. Time to move the laundry!
+      message: The washing machine has finished. Time for the children to move the
+        laundry!
   - action: tts.speak
     target:
       entity_id: tts.google_translate_en_com
@@ -524,7 +525,7 @@
   - action: notify.household
     data:
       title: Dryer Done
-      message: The dryer has finished.
+      message: The dryer has finished. Kennedy and Zavier, please fold the laundry!
   - action: tts.speak
     target:
       entity_id: tts.google_translate_en_com
