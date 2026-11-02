@@ -131,9 +131,10 @@ All personal push alerts go through a single legacy notify group defined in
 Consumers of `notify.household`:
 - `config/automations.yaml` — Oven Left On, Fridge Door Left Open, Washer Done,
   Dryer Done.
-- `config/packages/litter_robot.yaml` — Litter Drawer Full. Unlike the others
-  this one **repeats** on `input_number.litter_drawer_reminder_minutes` until
-  the drawer is emptied; see "Litter-Robot drawer alerts" below.
+- `config/packages/litter_robot.yaml` — Litter Drawer Full and Hopper Empty.
+  Unlike the others these **repeat** on
+  `input_number.litter_drawer_reminder_minutes` until resolved; see
+  "Litter-Robot drawer and hopper alerts" below.
 - `config/packages/health_check.yaml` — daily silent-failure scan.
 - `config/node-red/flows.json` — security posture alerts (Push Critical /
   Warning / Clear). The Node-RED **add-on** (`a0d7b954_nodered`) must be
@@ -162,14 +163,15 @@ on the default target, not the household group.
 ### Input Datetimes
 <!-- e.g. input_datetime.morning_work_day — Morning Wake Time (Work Day) -->
 
-### Litter-Robot drawer alerts
+### Litter-Robot drawer and hopper alerts
 
 `config/packages/litter_robot.yaml` follows the Washer Done / Dryer Done shape
 (push via `notify.household`, TTS to `media_player.living_room_display` and
 `media_player.family_room_wifi`, gated on `input_boolean.quiet_hours`) but
-**repeats** until the drawer is emptied.
+**repeats** until the underlying condition clears.
 
-Two independent "full" signals, whichever fires first:
+**Drawer** (`litter_robot_drawer_full`) — two independent "full" signals,
+whichever fires first:
 
 - `sensor.litter_robot_4_waste_drawer` crossing
   `input_number.litter_drawer_threshold_pct` — early warning, tunable
@@ -177,9 +179,17 @@ Two independent "full" signals, whichever fires first:
   robot's own verdict (~2 cycles left / ~1 left / stopped). Catches the case
   where it refuses to cycle at an unexpected fill level.
 
+**Hopper** (`litter_robot_hopper_empty`) — `sensor.litter_robot_4_hopper_status`
+reporting `litter_low` (early warning) or `empty` (can't refill the globe).
+Reuses `input_number.litter_drawer_reminder_minutes` for its reminder
+cadence rather than adding a second tunable for the same robot. Note:
+`binary_sensor.litter_robot_4_hopper_connected` exists in the entity registry
+but is disabled by the integration and returns "Entity not found" from the
+API — not usable as a trigger.
+
 Repetition is a `repeat … while` loop with a templated `delay`, rather than a
 `time_pattern` trigger, because a time pattern cannot take its interval from a
-helper. The `while` is re-evaluated each pass, so emptying the drawer or
+helper. The `while` is re-evaluated each pass, so the condition clearing or
 entering quiet hours ends the reminders with no second automation.
 
 Two triggers exist purely to re-arm that loop: `input_boolean.quiet_hours`
