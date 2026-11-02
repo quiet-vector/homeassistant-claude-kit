@@ -176,6 +176,14 @@ config/zigbee2mqtt/coordinator_backup.json
 
 # ESPHome secrets
 config/esphome/secrets.yaml
+# ESPHome device-builder tool state, including a peer link key
+config/esphome/.device-builder*
+
+# Config backups left behind by local fixes (e.g. configuration.yaml.bak-*)
+config/*.bak-*
+
+# On-HA copy of claude-code-ha's instructions file -- not this repo's docs
+config/CLAUDE.md
 
 # Working files / scratch
 nr_flow_edited.json
