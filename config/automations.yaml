@@ -232,34 +232,6 @@
       option: night
     action: input_select.select_option
   mode: single
-- &id001
-  id: jarvis_lighting_morning
-  alias: JARVIS Lighting — Morning
-  description: ''
-  triggers:
-  - entity_id: input_select.jarvis_mode
-    to: morning
-    trigger: state
-  actions:
-  - target:
-      entity_id: light.living_room
-    data:
-      brightness_pct: 50
-      transition: 3
-    action: light.turn_on
-    enabled: false
-  mode: restart
-- *id001
-- *id001
-- *id001
-- *id001
-- *id001
-- *id001
-- *id001
-- *id001
-- *id001
-- *id001
-- *id001
 - id: jarvis_lighting_day
   alias: JARVIS Lighting — Day (All Off)
   triggers:
