@@ -209,9 +209,10 @@ that land while the loop is already running out of the log.
      Example: "Dishwasher WiFi dies after cycle end (EU ecodesign) — state
      machine uses input_select that persists independently." -->
 
-- **`make push` is unsafe in the current repo state.** It runs
-  `rsync --delete`, but `.rsync-excludes-push` does not exclude `.env`,
-  `claude-code-ha/`, `CLAUDE.md`, or the remote `esphome/.git`, so a full push
-  would delete those from `/config` on HA. Until the exclude file is fixed,
-  deploy individual changed files with a targeted `rsync` (no `--delete`)
-  instead of `make push`.
+- **`make push` was unsafe (fixed 2026-10-11, commit `4e6f93a`).** `rsync
+  --delete` against `/homeassistant` would have deleted `claude-code-ha/`,
+  `.env`, and `CLAUDE.md`, and overwritten `zigbee2mqtt/` state and
+  `.HA_VERSION` with stale local copies. `.rsync-excludes-push` now covers
+  `claude-code-ha/`, `.env*`, `CLAUDE.md`, `zigbee2mqtt/`, `esphome/`,
+  `node-red/`, `.cache/`, `*.bak-*`, and the HA runtime files. Verified with
+  `make diff` on 2026-11-02 — reports zero deletions.
